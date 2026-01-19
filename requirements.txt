@@ -1,37 +1,9 @@
-Django==6.0.1
-razorpay==1.4.1
-reportlab==4.1.0
-Pillow==10.0.1
-matplotlib==3.8.2
-
-
-# Email + Security
-django-allauth==0.58.2
-django-crispy-forms==2.1
-crispy-bootstrap5==0.7
-
-# File handling (optional but recommended)
-django-cleanup==8.1.0
-
-# Database support
-psycopg2==2.9.9        # Only if using PostgreSQL
-# sqlite works without extra libs
-
-# For handling environment variables
-python-dotenv==1.0.0
-
-# For PDF/image downloads
-django-weasyprint==2.1.0   # Optional but recommended for advanced PDF rendering
-
-# API/Serialization (if needed later)
-djangorestframework==3.14.0
-
-# Thumbnails for File previews
-django-imagekit==5.0.0
-
-# For CORS (if needed)
-django-cors-headers==4.3.0
-
-# Deployment helpers (optional)
-gunicorn==21.2.0
-whitenoise==6.6.0
+Django
+djangorestframework
+Pillow
+python-dotenv
+psycopg2
+reportlab
+razorpay
+matplotlib
+gunicorn
