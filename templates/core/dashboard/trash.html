@@ -1,0 +1,99 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+{% block title %}Trash – CloudSync{% endblock %}
+{% block active_trash %}active{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/user/trash.css' %}">
+
+<div class="trash-wrapper">
+
+    <!-- PAGE TITLE -->
+    <h2 class="title">Trash</h2>
+    <p class="subtitle">Deleted files are permanently deleted after 30 days</p>
+
+    <!-- WARNING BOX -->
+    <div class="warning-box">
+        <div class="warning-icon">⚠️</div>
+        <div class="warning-text">
+            <strong>Items in trash will be permanently deleted after 30 days</strong>
+            <p>You can restore items before they are permanently deleted or remove them immediately.</p>
+        </div>
+    </div>
+
+    <!-- STATS GRID -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <p class="label">Items in Trash</p>
+            <h3>{{ total_items }}</h3>
+        </div>
+        <div class="stat-card">
+            <p class="label">Total Size</p>
+            <h3>{{ total_size }} GB</h3>
+        </div>
+        <div class="stat-card">
+            <p class="label">Expiring soon</p>
+            <h3 class="danger">{{ expiring_soon }}</h3>
+        </div>
+    </div>
+
+    <!-- SEARCH + BUTTONS -->
+    <div class="trash-header">
+        <div class="search-box">
+            <img src="{% static 'images/icons/search.png' %}">
+            <input type="text" placeholder="Search deleted files..." id="trashSearch">
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn restore-all">Restore All</button>
+            <button class="btn danger-btn">Empty Trash</button>
+        </div>
+    </div>
+
+    <!-- TRASH LIST -->
+    <div class="trash-list">
+
+        {% for file in deleted_files %}
+        <div class="trash-item">
+
+            <!-- ICON + DETAILS -->
+            <div class="file-left">
+                <img src="{% static 'fileicons/'|add:file.icon %}" class="file-icon">
+
+                <div class="file-info">
+                    <h4>{{ file.name }}</h4>
+                    <p>{{ file.type }} • {{ file.size }} MB</p>
+                </div>
+            </div>
+
+            <!-- META -->
+            <div class="file-meta">
+                <span class="deleted-time">Deleted {{ file.deleted_ago }} ago</span>
+                <span class="expires">Expires in {{ file.expires_in }} days</span>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="file-actions">
+                <button class="restore-btn">↩ Restore</button>
+                <button class="delete-btn">🗑 Delete</button>
+            </div>
+
+        </div>
+        {% empty %}
+        <p class="no-files">No deleted files.</p>
+        {% endfor %}
+    </div>
+
+    <!-- FOOTER PAGINATION -->
+    <div class="pagination">
+        <span>Showing {{ page_count }} of {{ total_items }} deleted files</span>
+
+        <div class="controls">
+            <button class="pg-btn">Previous</button>
+            <button class="pg-btn">Next</button>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

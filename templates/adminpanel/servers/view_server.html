@@ -1,0 +1,101 @@
+{% extends "adminpanel/base/admin_base.html" %}
+{% load static %}
+
+{% block title %}View Server – CloudSync Admin{% endblock %}
+{% block active_server %}active{% endblock %}
+
+{% block content %}
+<style>
+    .server-form-container {
+    background: #fff;
+    margin: 20px 60px;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    width: 600px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    font-size: 14px;
+    color: #555;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.submit-btn {
+    background: #7a29ff;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+</style>
+
+<div class="server-header">
+    <h2>Server Details</h2>
+    <p>Full information about the selected server</p>
+
+    <a href="{% url 'admin_servers' %}" class="add-server-btn" style="background:#ddd;color:#333;">
+        ← Back
+    </a>
+</div>
+
+<div class="server-card view-card">
+    <div class="server-top">
+        <div class="server-icon" style="background: {{ server.color }};">
+            <img src="{% static 'icons/server2.svg' %}">
+        </div>
+
+        <div class="server-info">
+            <h3>{{ server.name }}</h3>
+            <p>{{ server.location }}</p>
+        </div>
+
+        <span class="status-badge {{ server.status|lower }}">{{ server.status }}</span>
+    </div>
+
+    <div class="metric-group">
+
+        <div class="metric">
+            <span>CPU usage</span>
+            <div class="bar"><div style="width: {{ server.cpu }}%;"></div></div>
+            <span class="percent">{{ server.cpu }}%</span>
+        </div>
+
+        <div class="metric">
+            <span>Memory usage</span>
+            <div class="bar"><div style="width: {{ server.memory }}%;"></div></div>
+            <span class="percent">{{ server.memory }}%</span>
+        </div>
+
+        <div class="metric">
+            <span>Storage usage</span>
+            <div class="bar"><div style="width: {{ server.storage }}%;"></div></div>
+            <span class="percent">{{ server.storage }}%</span>
+        </div>
+
+        <div class="uptime">
+            <span>Uptime (30 days)</span>
+            <strong>{{ server.uptime }}%</strong>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

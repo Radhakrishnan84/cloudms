@@ -1,0 +1,224 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Roboto", sans-serif;
+}
+
+/* MAIN WRAPPER */
+.trash-wrapper {
+    padding: 20px 30px;
+    font-family: "Inter", sans-serif;
+}
+
+/* TITLES */
+.title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #222;
+}
+
+.subtitle {
+    margin-top: 5px;
+    color: #777;
+}
+
+/* WARNING BOX */
+.warning-box {
+    margin-top: 25px;
+    background: #ffe6e6;
+    border-radius: 10px;
+    padding: 18px 20px;
+    border: 1px solid #ffbcbc;
+    display: flex;
+    gap: 12px;
+}
+
+.warning-icon {
+    font-size: 22px;
+}
+
+.warning-text strong {
+    font-size: 14px;
+}
+
+.warning-text p {
+    color: #888;
+    margin-top: 4px;
+    font-size: 13px;
+}
+
+/* STAT CARDS */
+.stats-grid {
+    margin-top: 25px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px 22px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.stat-card .label {
+    font-size: 13px;
+    color: #6b6b6b;
+}
+
+.stat-card h3 {
+    margin-top: 6px;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.stat-card .danger {
+    color: #e63946;
+}
+
+/* SEARCH & ACTIONS */
+.trash-header {
+    margin-top: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* SEARCH BOX */
+.search-box {
+    position: relative;
+}
+
+.search-box img {
+    width: 17px;
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+}
+
+.search-box input {
+    width: 280px;
+    padding: 12px 15px 12px 40px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+/* BUTTONS */
+.btn {
+    padding: 10px 22px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.restore-all {
+    background: #8a5aff;
+    color: white;
+}
+
+.danger-btn {
+    background: #ff7675;
+    color: white;
+    margin-left: 12px;
+}
+
+/* TRASH LIST */
+.trash-list {
+    margin-top: 25px;
+}
+
+.trash-item {
+    background: white;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* LEFT SECTION */
+.file-left {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.file-icon {
+    width: 42px;
+}
+
+.file-info h4 {
+    font-size: 15px;
+    margin-bottom: 3px;
+}
+
+.file-info p {
+    font-size: 13px;
+    color: #777;
+}
+
+/* META */
+.file-meta {
+    text-align: right;
+}
+
+.deleted-time {
+    color: #777;
+    font-size: 13px;
+}
+
+.expires {
+    background: #e8fdf1;
+    color: #2a9d60;
+    padding: 3px 8px;
+    font-size: 12px;
+    border-radius: 8px;
+    margin-top: 4px;
+    display: inline-block;
+}
+
+/* ACTION BUTTONS */
+.file-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.restore-btn {
+    background: #e3fff2;
+    color: #2a9d60;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #a1e4c8;
+}
+
+.delete-btn {
+    background: #ffe6e6;
+    color: #d62828;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #f4b3b3;
+}
+
+/* PAGINATION */
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #777;
+}
+
+.pg-btn {
+    padding: 8px 15px;
+    background: #eee;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}

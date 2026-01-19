@@ -1,0 +1,33 @@
+.success-box, .fail-box {
+    width: 420px;
+    margin: 80px auto;
+    background: #fff;
+    padding: 40px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+}
+
+.icon {
+    width: 70px;
+    margin-bottom: 15px;
+}
+
+h2 {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+p {
+    color: #666;
+    margin: 10px 0 25px;
+}
+
+.go-btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background: #7A29FF;
+    color: #fff;
+    border-radius: 12px;
+    text-decoration: none;
+}

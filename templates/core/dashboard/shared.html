@@ -1,0 +1,110 @@
+{% extends "base/dashboard_base.html" %}
+{% load static %}
+
+{% block title %}Shared Files – CloudSync{% endblock %}
+{% block active_shared %}active{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/user/shared.css' %}">
+
+<div class="shared-container">
+
+    <!-- Page Header -->
+    <h2 class="page-title">Shared Files</h2>
+    <p class="subtitle">Files shared with you and by you</p>
+
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+
+        <div class="stat-card blue">
+            <div class="icon">
+                <img src="{% static 'images/icons/shared1.png' %}" />
+            </div>
+            <div class="text">
+                <h4>Shared by you</h4>
+                <span>{{ shared_by_you.count }} Files</span>
+            </div>
+        </div>
+
+        <div class="stat-card purple">
+            <div class="icon">
+                <img src="{% static 'images/icons/shared2.png' %}" />
+            </div>
+            <div class="text">
+                <h4>Shared with you</h4>
+                <span>{{ shared_with_you.count }} Files</span>
+            </div>
+        </div>
+
+        <div class="stat-card green">
+            <div class="icon">
+                <img src="{% static 'images/icons/shared3.png' %}" />
+            </div>
+            <div class="text">
+                <h4>Total Shared</h4>
+                <span>{{ total_shared }} Files</span>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Search Bar + Filter -->
+    <div class="search-filter-bar">
+        <div class="search-box">
+            <img src="{% static 'images/icons/search.png' %}">
+            <input type="text" placeholder="Search">
+        </div>
+
+        <button class="filter-btn">
+            <img src="{% static 'images/icons/filter.png' %}">
+            Filter
+        </button>
+    </div>
+
+
+    <!-- Shared File List -->
+    <div class="file-list">
+
+        {% for item in shared_with_you %}
+        <div class="file-card">
+
+            <!-- File Icon -->
+            <div class="file-icon">
+                {% if item.file.category == "document" %}
+                <img src="{% static 'images/icons/files-card.png' %}">
+                {% elif item.file.category == "image" %}
+                <img src="{% static 'images/icons/img-card.png' %}">
+                {% elif item.file.category == "video" %}
+                <img src="{% static 'images/icons/video-card.png' %}">
+                {% else %}
+                <img src="{% static 'images/icons/others-card.png' %}">
+                {% endif %}
+            </div>
+
+            <!-- File Info -->
+            <div class="file-info">
+                <h3>{{ item.file.name }}</h3>
+                <p>{{ item.file.category|title }} • {{ item.file.size }} MB • {{ item.shared_at|timesince }} ago</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="actions">
+                <a href="{{ item.file.file.url }}" class="view-btn" target="_blank">View</a>
+                <a href="#" class="menu-btn">
+                    <img src="{% static 'icons/menu.svg' %}">
+                </a>
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="empty-message">No shared files yet.</div>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

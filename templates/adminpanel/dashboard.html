@@ -1,0 +1,98 @@
+{% extends "adminpanel/base/admin_base.html" %}
+{% load static %}
+
+{% block title %}Admin Dashboard – CloudSync{% endblock %}
+{% block active_dashboard %}active{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/admin/admin_dashboard.css' %}">
+<div class="dashboard-header">
+    <h2>Dashboard Overview</h2>
+    <p>Monitor your cloud storage platform performance</p>
+</div>
+
+<!-- ===================== TOP METRICS ===================== -->
+<div class="metrics-grid">
+
+    <div class="metric-card">
+        <div class="metric-icon purple-bg">
+            <img src="{% static 'images/icons/db1.png' %}">
+        </div>
+        <div class="metric-title">Total Users</div>
+        <div class="metric-value">{{ total_users }}</div>
+        <div class="metric-trend">⬆ +12.5% Last week</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon purple-bg">
+            <img src="{% static 'images/icons/db2.png' %}">
+        </div>
+        <div class="metric-title">Storage used</div>
+        <div class="metric-value">{{ storage_used }} TB</div>
+        <div class="metric-trend">⬆ +12.5% Vs Last week</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon purple-bg">
+            <img src="{% static 'images/icons/db3.png' %}">
+        </div>
+        <div class="metric-title">Total Files</div>
+        <div class="metric-value">{{ total_files }}</div>
+        <div class="metric-trend">⬆ +12.5% Vs Last week</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon purple-bg">
+            <img src="{% static 'images/icons/db4.png' %}">
+        </div>
+        <div class="metric-title">Active servers</div>
+        <div class="metric-value">{{ active_servers }}</div>
+        <div class="metric-trend">⬆ +12.5% Vs Last week</div>
+    </div>
+
+</div>
+
+<!-- ===================== MIDDLE CHARTS ===================== -->
+<div class="middle-grid">
+
+    <div class="chart-box">
+        <h3>User activity</h3>
+        <p class="chart-sub">Daily user management metrics</p>
+        <img src="{% static 'admin_charts/activity.png' %}" class="chart-img">
+    </div>
+
+    <div class="chart-box">
+        <h3>Plan Distribution</h3>
+        <p class="chart-sub">User Subscription breakdown</p>
+        <img src="{% static 'admin_charts/plans.png' %}" class="chart-img donut-img">
+    </div>
+
+</div>
+
+<!-- ===================== BOTTOM CHARTS + ACTIVITY ===================== -->
+<div class="bottom-grid">
+
+    <div class="chart-box">
+        <h3>Storage Growth</h3>
+        <p class="chart-sub">Total storage usage overtime (TB)</p>
+        <img src="{% static 'admin_charts/storage.png' %}" class="chart-img">
+    </div>
+
+    <div class="activity-box">
+        <h3>Recent Activity</h3>
+
+        <ul class="activity-list">
+            {% for f in recent_activity %}
+            <li>
+                <span class="activity-dot"></span>
+                <span class="user-name">{{ f.user.first_name }}</span>
+                <span class="activity-text">Uploaded {{ f.name }}</span>
+                <span class="activity-time">{{ f.uploaded_at|timesince }} ago</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>
+
+{% endblock %}

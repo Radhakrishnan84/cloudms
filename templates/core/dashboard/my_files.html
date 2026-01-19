@@ -1,0 +1,70 @@
+{% extends "base/dashboard_base.html" %}
+{% load static %}
+
+{% block title %}My Files – CloudSync{% endblock %}
+{% block active_my_files %}active{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/user/my_files.css' %}">
+
+<div class="files-page">
+
+    <!-- Header -->
+    <h2 class="page-title">Upload Files</h2>
+    <p class="page-sub">Drag and drop your files or browse to upload</p>
+
+    <!-- Table Heading -->
+    <div class="table-header">
+        <div class="col file-name">
+            <img src="{% static 'images/icons/sb-files.png' %}">
+            <span>File Name</span>
+        </div>
+        <div class="col modified">Modified </div>
+        <div class="col modified-by">Modified By</div>
+    </div>
+
+    <!-- File List -->
+    <div class="file-list">
+        {% for f in files %}
+        <div class="file-row">
+
+            <!-- File Icon + Details -->
+            <div class="col file-name">
+                   <div class="file-icon">
+                {% if item.file.category == "document" %}
+                <img src="{% static 'images/icons/files-card.png' %}">
+                {% elif item.file.category == "image" %}
+                <img src="{% static 'images/icons/img-card.png' %}">
+                {% elif item.file.category == "video" %}
+                <img src="{% static 'images/icons/video-card.png' %}">
+                {% else %}
+                <img src="{% static 'images/icons/others-card.png' %}">
+                {% endif %}
+            </div>
+
+                <div class="file-meta">
+                    <h4>{{ f.name }}</h4>
+                    <p>{{ f.category|title }} • {{ f.size }} MB • {{ f.uploaded_at|timesince }} ago</p>
+                </div>
+            </div>
+
+            <!-- Modified -->
+            <div class="col modified">
+                {{ f.uploaded_at|date:"F d" }}
+            </div>
+
+            <!-- Modified By -->
+            <div class="col modified-by">
+                {{ request.user.first_name }}
+            </div>
+        </div>
+
+        {% empty %}
+        <div class="empty">No files uploaded yet.</div>
+        {% endfor %}
+    </div>
+
+</div>
+
+{% endblock %}

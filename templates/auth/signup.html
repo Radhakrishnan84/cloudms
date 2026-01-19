@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up – CloudSync</title>
+    <link rel="stylesheet" href="{% static 'css/signup.css' %}">
+</head>
+
+<body>
+
+<div class="signup-wrapper">
+
+    <!-- LEFT SIDE FORM -->
+    <div class="signup-left">
+
+        <div class="signup-center">
+
+            <!-- Logo -->
+            <div class="signup-logo">
+                <img src="{% static 'images/logo.png' %}" alt="">
+                <h2>CloudSync</h2>
+            </div>
+
+            <!-- TAB SWITCH -->
+            <div class="signup-tabs">
+                <a href="{% url 'login' %}" class="tab">Login</a>
+                <a class="tab active">Sign Up</a>
+            </div>
+
+            <!-- Title -->
+            <h1 class="signup-title">Create your account</h1>
+            <p class="signup-subtitle">Start your cloud journey with secure access.</p>
+
+            <!-- FORM -->
+            <form method="POST">
+                {% csrf_token %}
+
+                <label>Full Name</label>
+                <input type="text" name="username" placeholder="Enter your name" required>
+
+                <label>Email Address</label>
+                <input type="email" name="email" placeholder="you@example.com" required>
+
+                <label>Password</label>
+                <input type="password" name="password1" placeholder="Create password" required>
+
+                <label>Confirm Password</label>
+                <input type="password" name="password2" placeholder="Confirm password" required>
+
+                <button type="submit" class="signup-btn">Create Account</button>
+            </form>
+
+            <!-- Footer -->
+            <div class="signup-footer">
+                Already have an account?
+                <a href="{% url 'login' %}">Sign in</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- RIGHT SIDE IMAGE -->
+    <div class="signup-right">
+        <img src="{% static 'images/login.png' %}" alt="">
+    </div>
+
+</div>
+
+</body>
+</html>

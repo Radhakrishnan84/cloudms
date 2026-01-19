@@ -1,0 +1,108 @@
+{% extends "adminpanel/base/admin_base.html" %}
+{% load static %}
+
+{% block title %}Add New User – CloudSync Admin{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/admin/users.css' %}">
+
+<style>
+.add-container {
+    background: #fff;
+    margin: 40px 60px;
+    padding: 40px;
+    border-radius: 16px;
+    width: 70%;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+}
+
+.add-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.add-sub {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.add-form label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+    display: block;
+    margin-top: 18px;
+}
+
+.add-form input, 
+.add-form select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+.save-btn {
+    margin-top: 25px;
+    padding: 12px 25px;
+    background: #7a29ff;
+    color: #fff;
+    border-radius: 12px;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(122,41,255,0.3);
+}
+
+.back-btn {
+    margin-top: 25px;
+    margin-left: 12px;
+    padding: 12px 25px;
+    background: #ddd;
+    color: #333;
+    border-radius: 12px;
+    font-size: 15px;
+    text-decoration: none;
+}
+</style>
+
+<div class="add-container">
+
+    <div class="add-title">Add New User</div>
+    <div class="add-sub">Create a new user and assign a subscription plan</div>
+
+    <form method="POST" class="add-form">
+        {% csrf_token %}
+
+        <label>First Name</label>
+        <input type="text" name="first_name" placeholder="Enter first name" required>
+
+        <label>Last Name</label>
+        <input type="text" name="last_name" placeholder="Enter last name" required>
+
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="user@example.com" required>
+
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Set initial password" required>
+
+        <label>Subscription Plan</label>
+        <select name="plan">
+            <option value="Free">Free</option>
+            <option value="Basic">Basic</option>
+            <option value="Pro">Pro</option>
+            <option value="Enterprise">Enterprise</option>
+        </select>
+
+        <button class="save-btn">Create User</button>
+        <a href="{% url 'admin_users' %}" class="back-btn">Cancel</a>
+
+    </form>
+
+</div>
+
+{% endblock %}

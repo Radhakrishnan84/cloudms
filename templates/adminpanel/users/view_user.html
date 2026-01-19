@@ -1,0 +1,124 @@
+{% extends "adminpanel/base/admin_base.html" %}
+{% load static %}
+
+{% block title %}View User – CloudSync Admin{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/admin/users.css' %}">
+<style>
+.view-container {
+    background: #fff;
+    margin: 40px 60px;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+    width: 70%;
+}
+
+.profile-row {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.profile-img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #eee;
+}
+
+.profile-info h3 {
+    font-size: 20px;
+    font-weight: 700;
+}
+.profile-info p {
+    color: #666;
+    margin-top: 4px;
+}
+
+.section-title {
+    margin-top: 35px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #444;
+}
+
+.user-details {
+    margin-top: 12px;
+}
+
+.user-details div {
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.badge-status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.active { background: #d8ffe1; color: #1ea94b; }
+.suspended { background: #ffe5e5; color: #ff5252; }
+
+.action-row {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+.edit-btn, .back-btn {
+    padding: 12px 25px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.edit-btn {
+    background: #7a29ff;
+    color: white;
+    box-shadow: 0 3px 10px rgba(122,41,255,0.3);
+}
+
+.back-btn {
+    background: #ddd;
+    color: #333;
+}
+</style>
+
+<div class="view-container">
+
+    <div class="profile-row">
+        <img src="{% static 'images/user1.png' %}" class="profile-img">
+        <div class="profile-info">
+            <h3>{{ u.first_name }} {{ u.last_name }}</h3>
+            <p>{{ u.email }}</p>
+        </div>
+    </div>
+
+    <div class="section-title">Account Information</div>
+
+    <div class="user-details">
+        <div><strong>Plan:</strong> {{ u.subscription.plan }}</div>
+        <div><strong>Storage Used:</strong> {{ u.used_storage }} GB / {{ u.storage_limit }} GB</div>
+        <div><strong>Status:</strong>
+            {% if u.is_active %}
+            <span class="badge-status active">Active</span>
+            {% else %}
+            <span class="badge-status suspended">Suspended</span>
+            {% endif %}
+        </div>
+        <div><strong>Joined:</strong> {{ u.date_joined|date:"M d, Y" }}</div>
+    </div>
+
+    <div class="action-row">
+        <a href="{% url 'admin_user_edit' u.id %}" class="edit-btn">Edit User</a>
+        <a href="{% url 'admin_users' %}" class="back-btn">Back</a>
+    </div>
+
+</div>
+
+{% endblock %}

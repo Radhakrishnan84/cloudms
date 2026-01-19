@@ -1,0 +1,141 @@
+{% extends "adminpanel/base/admin_base.html" %}
+{% load static %}
+{% block title %}File Management – CloudSync Admin{% endblock %}
+{% block active_files %}active{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/admin/files.css' %}">
+
+<div class="file-header">
+    <h2>File management</h2>
+    <p>Monitor and manage all files across the platform</p>
+</div>
+
+<!-- Top Controls -->
+<div class="file-controls">
+
+    <!-- Search -->
+    <div class="search-box">
+        <img src="{% static 'images/icons/search.png' %}">
+        <input type="text" id="fileSearch" placeholder="Search Files">
+    </div>
+
+    <!-- Buttons -->
+    <div class="file-btn-group">
+
+        <!-- Type Filter -->
+        <div class="dropdown">
+            <button class="drop-btn">
+                <img src="{% static 'images/icons/filter.png' %}"> All Types
+                <img src="{% static 'images/icons/dropdown.png' %}" class="arrow">
+            </button>
+
+            <div class="dropdown-content" id="typeFilter">
+                <a data-type="all">All</a>
+                <a data-type="document">Documents</a>
+                <a data-type="image">Images</a>
+                <a data-type="video">Videos</a>
+                <a data-type="pdf">PDF</a>
+                <a data-type="zip">ZIP</a>
+            </div>
+        </div>
+
+        <!-- Export -->
+        <button id="exportFiles" class="export-btn">
+            <img src="{% static 'images/icons/export.png' %}"> Export
+        </button>
+
+        <!-- Add File -->
+        <a href="{% url 'admin_add_file' %}" class="add-file-btn">
+            <img src="{% static 'images/icons/add.png' %}"> Add File
+        </a>
+
+    </div>
+</div>
+
+
+<!-- Files Table -->
+<div class="files-table">
+
+    <div class="table-header">
+        <span>File Name</span>
+        <span>Type</span>
+        <span>Owner</span>
+        <span>File size</span>
+    </div>
+
+    {% for f in files %}
+    <div class="file-row" data-type="{{ f.category }}">
+       
+        <div class="file-info">
+            <img src="{{ f.icon_url }}">
+            <div>
+                <strong>{{ f.name }}</strong>
+                <p>{{ f.type }} • {{ f.size }} MB • {{ f.created_ago }}</p>
+            </div>
+        </div>
+
+        <div class="file-type">{{ f.created_date }}</div>
+
+        <div class="file-owner">{{ f.owner_name }}</div>
+
+        <div class="file-size">{{ f.items_count }} Items</div>
+
+    </div>
+    {% empty %}
+    <p class="no-files">No files available.</p>
+    {% endfor %}
+
+</div>
+
+
+<script>
+/* --------------------------- */
+/* 🔍 SEARCH FILES             */
+/* --------------------------- */
+document.getElementById("fileSearch").addEventListener("keyup", function () {
+    var value = this.value.toLowerCase();
+    document.querySelectorAll(".file-row").forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+    });
+});
+
+/* --------------------------- */
+/* 📂 FILE TYPE FILTER         */
+/* --------------------------- */
+document.querySelectorAll("#typeFilter a").forEach(option => {
+    option.addEventListener("click", () => {
+        const type = option.dataset.type;
+
+        document.querySelectorAll(".file-row").forEach(row => {
+            if (type === "all") {
+                row.style.display = "";
+            } else {
+                row.style.display = row.dataset.type.includes(type) ? "" : "none";
+            }
+        });
+    });
+});
+
+/* --------------------------- */
+/* 📤 EXPORT FILE LIST         */
+/* --------------------------- */
+document.getElementById("exportFiles").addEventListener("click", function () {
+
+    fetch("{% url 'admin_export_files' %}")
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "cloudsync_files.csv";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        })
+        .catch(() => alert("Failed to export files."));
+});
+</script>
+
+{% endblock %}

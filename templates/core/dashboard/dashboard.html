@@ -1,0 +1,85 @@
+{% extends "base/dashboard_base.html" %}
+{% load static %}
+
+{% block title %}Dashboard – CloudSync{% endblock %}
+{% block active_dashboard %}active{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/user/dashboard.css' %}">
+<h2 class="section-title">Dashboard</h2>
+<p class="section-sub">Welcome back! Here's what's happening with your storage.</p>
+
+<!-- Category Cards -->
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <div class="icon purple"><img src="{% static 'images/icons/files-card.png' %}"></div>
+        <h4>Documents</h4>
+        <p>{{ doc_count }} files</p>
+        <strong>{{ doc_size }} GB</strong>
+        <a href="#" class="viewall">View all →</a>
+    </div>
+
+    <div class="stat-card">
+        <div class="icon pink"><img src="{% static 'images/icons/img-card.png' %}"></div>
+        <h4>Images</h4>
+        <p>{{ img_count }} files</p>
+        <strong>{{ img_size }} GB</strong>
+        <a href="#" class="viewall">View all →</a>
+    </div>
+
+    <div class="stat-card">
+        <div class="icon red"><img src="{% static 'images/icons/video-card.png' %}"></div>
+        <h4>Videos</h4>
+        <p>{{ vid_count }} files</p>
+        <strong>{{ vid_size }} GB</strong>
+        <a href="#" class="viewall">View all →</a>
+    </div>
+
+    <div class="stat-card">
+        <div class="icon orange"><img src="{% static 'images/icons/others-card.png' %}"></div>
+        <h4>Others</h4>
+        <p>{{ oth_count }} files</p>
+        <strong>{{ oth_size }} GB</strong>
+        <a href="#" class="viewall">View all →</a>
+    </div>
+
+</div>
+
+
+<!-- Recent Files -->
+<div class="recent-header">
+    <h3>Recent Files</h3>
+    <a href="#" class="viewall">View all</a>
+</div>
+
+<div class="recent-files-grid">
+    {% for f in recent_files %}
+        <div class="file-card">
+
+            <div class="ficon
+                {% if f.category == 'document' %}doc{% endif %}
+                {% if f.category == 'image' %}img{% endif %}
+                {% if f.category == 'video' %}vid{% endif %}
+                {% if f.category == 'other' %}oth{% endif %}
+            "></div>
+
+            <div class="fdetails">
+                <h4>{{ f.name }}</h4>
+                <p>{{ f.category|title }} File • {{ f.size }} MB<br>
+                {{ f.uploaded_at|timesince }} ago</p>
+            </div>
+
+            <div class="factions">
+                <img src="{% static 'icons/star.svg' %}" class="star">
+                <img src="{% static 'icons/menu.svg' %}" class="menu">
+            </div>
+
+        </div>
+    {% empty %}
+        <p>No recent files.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Login – CloudSync</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+
+<div class="split-container">
+
+    <!-- LEFT -->
+    <div class="left-section">
+
+        <div class="logo">
+            <img src="{% static 'images/logo.png' %}">
+            <span>CloudSync</span>
+        </div>
+
+        <!-- TABS -->
+        <div class="tab-switch">
+            <a href="{% url 'login_admin' %}" class="tab-btn admin-btn">Admin</a>
+            <button class="tab-btn user-btn active">User</button>
+        </div>
+
+        <!-- FORM -->
+        <div class="form-area">
+            <h1>Welcome!!!</h1>
+            <p class="subtitle">Sign in to access your CloudSync account</p>
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="login_type" value="user">
+
+                <label>User ID</label>
+                <input type="email" name="email" placeholder="you@example.com" required>
+
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Enter your password" required>
+
+                <div class="remember-forgot">
+                    <label class="remember-box">
+                        <input type="checkbox" name="rememberMe">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-link">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="login-btn">Sign In</button>
+            </form>
+
+            <p class="signup">Don't have an account? <a href="{% url 'signup' %}">Sign up for free</a></p>
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-section">
+        <img src="{% static 'images/login.png' %}">
+    </div>
+
+</div>
+
+</body>
+</html>

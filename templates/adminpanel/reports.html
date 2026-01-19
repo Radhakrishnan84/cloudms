@@ -1,0 +1,260 @@
+{% extends "adminpanel/base/admin_base.html" %}
+{% load static %}
+{% block title %}Reports & Analytics – CloudSync Admin{% endblock %}
+{% block active_reports %}active{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/admin/reports.css' %}">
+
+<div class="reports-header">
+
+    <div class="left">
+        <h2>Reports & Analytics</h2>
+        <p>Detailed insights and performance metrics</p>
+    </div>
+
+    <div class="right">
+        <!-- Filter -->
+        <div class="filter-dropdown">
+            <button class="filter-btn">
+                <img src="{% static 'images/icons/filter.png' %}" />
+                Last 30 days
+                <img src="{% static 'images/icons/dropdown.png' %}" class="arrow">
+            </button>
+
+            <div class="dropdown-box">
+                <a href="?range=7">Last 7 days</a>
+                <a href="?range=30">Last 30 days</a>
+                <a href="?range=90">Last 90 days</a>
+                <a href="?range=365">Last 12 months</a>
+            </div>
+        </div>
+
+        <!-- Add Server Button -->
+        <a href="{% url 'admin_add_server' %}" class="add-server-btn">
+            <img src="{% static 'images/icons/add.png' %}"> Add Server
+        </a>
+    </div>
+</div>
+
+
+<!-- ===================== KPI CARDS ====================== -->
+<div class="kpi-row">
+
+    <div class="kpi-card">
+        <div class="icon green"><img src="{% static 'images/icons/report1.png' %}"></div>
+        <h3>{{ total_growth }}</h3>
+        <p>Total growth</p>
+        <span class="tag green">This month</span>
+    </div>
+
+    <div class="kpi-card">
+        <div class="icon purple"><img src="{% static 'images/icons/report2.png' %}"></div>
+        <h3>{{ new_users }}</h3>
+        <p>New users</p>
+        <span class="tag green">This month</span>
+    </div>
+
+    <div class="kpi-card">
+        <div class="icon teal"><img src="{% static 'images/icons/report3.png' %}"></div>
+        <h3>{{ files_uploaded }}</h3>
+        <p>Files uploaded</p>
+        <span class="tag green">This month</span>
+    </div>
+
+    <div class="kpi-card">
+        <div class="icon red"><img src="{% static 'images/icons/report4.png' %}"></div>
+        <h3>{{ storage_added }}</h3>
+        <p>Storage added</p>
+        <span class="tag green">This month</span>
+    </div>
+
+</div>
+
+
+<!-- ===================== PERFORMANCE GROWTH ====================== -->
+<div class="chart-card">
+    <h3>Performance Growth</h3>
+    <p class="chart-sub">Monthly user and storage growth trends</p>
+
+    <canvas id="performanceChart"></canvas>
+</div>
+
+<div class="chart-actions">
+            <button class="btn small" id="downloadPerfPng">Download Chart</button>
+        </div>
+
+
+<!-- ===================== WEEKLY ACTIVITY ====================== -->
+<div class="chart-card">
+    <h3>Weekly activity</h3>
+    <p class="chart-sub">Upload and download activity for the past week</p>
+
+    <canvas id="weeklyChart"></canvas>
+</div>
+
+<div class="chart-actions">
+            <button class="btn small" id="downloadPerfPng">Download Chart</button>
+        </div>
+
+<script>
+    const REPORTS_DATA = {
+        /* these variables are filled by the view */
+        performance_labels: {{ perf_labels|safe }},
+        performance_values: {{ perf_values|safe }},
+        weekly_labels: {{ week_labels|safe }},
+        weekly_uploads: {{ week_uploads|safe }},
+        weekly_downloads: {{ week_downloads|safe }}
+    };
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+
+(function () {
+    // Helper to get CSRF token cookie (Django)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i=0;i<cookies.length;i++){
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length+1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length+1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // Chart.js charts
+    const perfCtx = document.getElementById('performanceChart').getContext('2d');
+    const weekCtx = document.getElementById('weeklyChart').getContext('2d');
+
+    // Build Performance line chart
+    const perfChart = new Chart(perfCtx, {
+        type: 'line',
+        data: {
+            labels: REPORTS_DATA.performance_labels,
+            datasets: [{
+                label: 'Users',
+                data: REPORTS_DATA.performance_values,
+                fill: true,
+                tension: 0.35,
+                borderWidth: 2,
+                pointRadius: 4,
+                backgroundColor: 'rgba(122,41,255,0.08)',
+                borderColor: 'rgba(122,41,255,0.95)',
+                pointBackgroundColor: 'rgba(122,41,255,0.95)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true },
+                x: { ticks: { maxRotation: 0 } }
+            }
+        }
+    });
+
+    // Build weekly bar chart (two series)
+    const weeklyChart = new Chart(weekCtx, {
+        type: 'bar',
+        data: {
+            labels: REPORTS_DATA.weekly_labels,
+            datasets: [
+                {
+                    label: 'Uploads',
+                    data: REPORTS_DATA.weekly_uploads,
+                    backgroundColor: 'rgba(106,227,122,0.75)',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Downloads',
+                    data: REPORTS_DATA.weekly_downloads,
+                    backgroundColor: 'rgba(122,41,255,0.75)',
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // Download single chart as PNG
+    function downloadCanvasImage(chartRef, filename) {
+        const a = document.createElement('a');
+        a.href = chartRef.toBase64Image('image/png', 1);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+    document.getElementById('downloadPerfPng').addEventListener('click', ()=> {
+        downloadCanvasImage(perfChart, 'performance-chart.png');
+    });
+    document.getElementById('downloadWeekPng').addEventListener('click', ()=> {
+        downloadCanvasImage(weeklyChart, 'weekly-chart.png');
+    });
+
+    // Export PDF: gather chart images and POST to server
+    document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
+        const perfImg = perfChart.toBase64Image('image/png', 1.0);
+        const weekImg = weeklyChart.toBase64Image('image/png', 1.0);
+
+        const payload = {
+            title: "Reports & Analytics",
+            perf_image: perfImg,
+            week_image: weekImg,
+            meta: {
+                generated_at: (new Date()).toISOString()
+            }
+        };
+
+        try {
+            const resp = await fetch("{% url 'admin_reports_export_pdf' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!resp.ok) {
+                const txt = await resp.text();
+                alert("PDF export failed: " + resp.status + "\n" + txt);
+                return;
+            }
+
+            // Receive file blob and download
+            const blob = await resp.blob();
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = "reports.pdf";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (err){
+            console.error(err);
+            alert("Error exporting PDF: " + err.message);
+        }
+    });
+
+})();
+
+
+</script>
+
+
+{% endblock %}

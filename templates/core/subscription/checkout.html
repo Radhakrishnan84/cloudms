@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout – CloudSync</title>
+    <link rel="stylesheet" href="{% static 'css/checkout.css' %}">
+</head>
+
+<body>
+
+<div class="checkout-wrapper">
+
+    <!-- Left Section -->
+    <div class="checkout-card">
+
+        <h2 class="title">Complete Your Subscription</h2>
+        <p class="subtitle">You selected the <strong>{{ plan|title }}</strong> plan</p>
+
+        <!-- Plan Summary Box -->
+        <div class="plan-box">
+            <h3>{{ plan_data.name }}</h3>
+            <p class="storage">{{ plan_data.storage }} GB Cloud Storage</p>
+
+            <ul class="feature-list">
+                <li>✔ Secure Cloud Storage</li>
+                <li>✔ Advanced File Sharing</li>
+                <li>✔ Priority Upload Speed</li>
+                <li>✔ 24/7 Customer Support</li>
+            </ul>
+
+            <div class="price-row">
+                <span>Total Amount:</span>
+                <strong>₹{{ amount|floatformat:2 }}</strong>
+            </div>
+        </div>
+
+        <!-- Payment Button -->
+        <button id="payBtn" class="pay-btn">
+            Proceed to Pay ₹{{ amount|floatformat:2 }}
+        </button>
+
+        <p class="safe-text">🔒 Secure Payment via Razorpay</p>
+
+    </div>
+
+
+    <!-- Right Section (Image) -->
+    <div class="checkout-image">
+        <img src="{% static 'images/checkout.png' %}" alt="Checkout Illustration">
+    </div>
+
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+// Start Payment
+document.getElementById("payBtn").onclick = function () {
+
+    fetch("/payment/create-order/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `plan={{ plan }}&amount={{ amount }}`
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        var options = {
+            "key": "{{ razorpay_key }}",
+            "amount": data.order.amount,
+            "currency": "INR",
+            "order_id": data.order.id,
+
+            "name": "CloudSync",
+            "description": "{{ plan_data.name }} Subscription",
+
+            "theme": { "color": "#6a00ff" },
+
+            "handler": function (response) {
+                var form = document.createElement("form");
+                form.method = "POST";
+                form.action = "/payment/verify/";
+
+                form.innerHTML = `
+                    <input name="plan" value="{{ plan }}">
+                    <input name="amount" value="{{ amount }}">
+                    <input name="razorpay_payment_id" value="${response.razorpay_payment_id}">
+                    <input name="razorpay_order_id" value="${response.razorpay_order_id}">
+                    <input name="razorpay_signature" value="${response.razorpay_signature}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        };
+
+        var rzp = new Razorpay(options);
+        rzp.open();
+    });
+}
+</script>
+
+</body>
+</html>

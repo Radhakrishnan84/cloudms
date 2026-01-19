@@ -1,0 +1,204 @@
+{% extends "adminpanel/base/admin_base.html" %}
+{% load static %}
+{% block title %}User Management – CloudSync Admin{% endblock %}
+{% block active_users %}active{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/admin/users.css' %}">
+
+<div class="user-header">
+    <h2>User Management</h2>
+    <p>Manage all users and their subscriptions</p>
+</div>
+
+<!-- Top Controls -->
+<div class="top-controls">
+
+    <!-- Search -->
+    <div class="search-box">
+        <img src="{% static 'images/icons/search.png' %}">
+        <input type="text" id="searchInput" placeholder="Search user by name or Email">
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-group">
+
+        <!-- Plan Filter -->
+        <div class="dropdown">
+            <button class="drop-btn">
+                <img src="{% static 'images/icons/filter.png' %}">
+                All Plans
+                <img src="{% static 'images/icons/dropdown.png' %}" class="arrow">
+            </button>
+            <div class="dropdown-content" id="planFilter">
+                <a data-plan="all">All</a>
+                <a data-plan="free">Free</a>
+                <a data-plan="basic">Basic</a>
+                <a data-plan="pro">Pro</a>
+                <a data-plan="enterprise">Enterprise</a>
+            </div>
+        </div>
+
+        <!-- Export -->
+        <button class="export-btn">
+            <img src="{% static 'images/icons/export.png' %}"> Export
+        </button>
+
+        <!-- Add User -->
+        <a href="#" class="add-user-btn">
+            <img src="{% static 'images/icons/add.png' %}"> Add User
+        </a>
+    </div>
+
+</div>
+
+
+<!-- User Table -->
+<div class="user-table">
+
+    <div class="table-header">
+        <span>User</span>
+        <span>Plan</span>
+        <span>Storage Used</span>
+        <span>Status</span>
+        <span>Joined</span>
+        <span>Action</span>
+    </div>
+
+    {% for u in users %}
+    <div class="table-row">
+
+        <!-- User Info -->
+        <div class="user-info">
+            <img src="{{ '/static/images/user1.png' }}">
+            <div>
+                <strong>{{ u.first_name }} {{ u.last_name }}</strong>
+                <p>{{ u.email }}</p>
+            </div>
+        </div>
+
+        <!-- Plan -->
+        <div>
+            <span class="plan-badge {{ u.plan|lower }}">
+                {{ u.plan|title }}
+            </span>
+        </div>
+
+        <!-- Storage -->
+        <div class="storage-col">
+            <strong>{{ u.used_storage }} GB</strong>
+            <p>Of {{ u.storage_limit }} GB</p>
+        </div>
+
+        <!-- Status -->
+        <div>
+            <span class="status-badge {{ u.status|lower }}">
+                {{ u.status }}
+            </span>
+        </div>
+
+        <!-- Joined -->
+        <div>{{ u.date_joined|date:"M d, Y" }}</div>
+
+        <!-- Action Dropdown -->
+        <div class="action-menu">
+            <button class="action-icon"> ⋮</button>
+           <div class="action-dropdown">
+    <a href="{% url 'admin_user_view' u.id %}">View</a>
+    <a href="{% url 'admin_user_edit' u.id %}">Edit</a>
+
+    {% if u.is_active %}
+       <a href="{% url 'admin_user_activate' u.id %}">Activate</a>
+    {% else %}
+         <a href="{% url 'admin_user_suspend' u.id %}">Suspend</a>
+    {% endif %}
+
+    <a href="{% url 'admin_user_delete' u.id %}" class="delete">Delete</a>
+</div>
+        </div>
+
+    </div>
+    {% endfor %}
+
+</div>
+
+<!-- Pagination -->
+<div class="pagination">
+    {% if users.has_previous %}
+        <a href="?page={{ users.previous_page_number }}" class="page-btn">Previous</a>
+    {% endif %}
+
+    <span class="page-number">{{ users.number }} / {{ users.paginator.num_pages }}</span>
+
+    {% if users.has_next %}
+        <a href="?page={{ users.next_page_number }}" class="page-btn">Next</a>
+    {% endif %}
+</div>
+
+<script>
+/* --------------------------- */
+/* 🔍 SEARCH FILTER           */
+/* --------------------------- */
+document.getElementById("searchInput").addEventListener("keyup", function () {
+    const value = this.value.toLowerCase();
+    document.querySelectorAll(".table-row").forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+    });
+});
+
+/* --------------------------- */
+/* 📌 PLAN FILTER              */
+/* --------------------------- */
+document.querySelectorAll("#planFilter a").forEach(option => {
+    option.addEventListener("click", () => {
+        const plan = option.dataset.plan;
+
+        document.querySelectorAll(".table-row").forEach(row => {
+            if (plan === "all") {
+                row.style.display = "";
+            } else {
+                row.style.display = row.innerHTML.toLowerCase().includes(plan) ? "" : "none";
+            }
+        });
+    });
+});
+
+/* --------------------------- */
+/* 🟪 ADD USER BUTTON LOGIC     */
+/* --------------------------- */
+document.querySelector(".add-user-btn").addEventListener("click", function (e) {
+    e.preventDefault();
+    window.location.href = "{% url 'admin_add_user' %}";
+});
+
+/* --------------------------- */
+/* 📤 EXPORT USERS LOGIC        */
+/* --------------------------- */
+document.querySelector(".export-btn").addEventListener("click", function () {
+
+    fetch("{% url 'admin_export_users' %}")
+        .then(response => {
+            if (!response.ok) {
+                alert("❌ Failed to export user data.");
+                return;
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            if (!blob) return;
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "cloudsync_users.csv";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        })
+        .catch(() => alert("❌ Something went wrong while exporting."));
+});
+</script>
+
+
+{% endblock %}

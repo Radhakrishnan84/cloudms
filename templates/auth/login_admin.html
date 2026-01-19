@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login – CloudSync</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+
+<div class="split-container">
+
+    <div class="left-section">
+
+        <div class="logo">
+            <img src="{% static 'images/logo.png' %}">
+            <span>CloudSync</span>
+        </div>
+
+        <!-- TABS -->
+        <div class="tab-switch">
+            <button class="tab-btn admin-btn active">Admin</button>
+            <a href="{% url 'login' %}" class="tab-btn user-btn">User</a>
+        </div>
+
+        <!-- FORM -->
+        <div class="form-area">
+
+            <h1>Welcome!!!</h1>
+            <p class="subtitle">Administrator access only</p>
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="login_type" value="admin">
+
+                <label>Admin Username</label>
+                <input type="text" name="username" placeholder="admin123" required>
+
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Enter admin password" required>
+
+                <button type="submit" class="login-btn admin-btn-color">Login as Admin</button>
+            </form>
+
+        </div>
+
+    </div>
+
+    <div class="right-section">
+        <img src="{% static 'images/login.png' %}">
+    </div>
+
+</div>
+
+</body>
+</html>

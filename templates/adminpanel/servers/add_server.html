@@ -1,0 +1,111 @@
+{% extends "adminpanel/base/admin_base.html" %}
+{% load static %}
+
+{% block title %}Add Server – CloudSync Admin{% endblock %}
+{% block active_server %}active{% endblock %}
+
+{% block content %}
+
+<style>
+    .server-form-container {
+    background: #fff;
+    margin: 20px 60px;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    width: 600px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    font-size: 14px;
+    color: #555;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.submit-btn {
+    background: #7a29ff;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+</style>
+
+<div class="server-header">
+    <h2>Add New Server</h2>
+    <p>Register a new infrastructure server</p>
+
+    <a href="{% url 'admin_servers' %}" class="add-server-btn" style="background:#ddd;color:#333;">
+        ← Back
+    </a>
+</div>
+
+<div class="server-form-container">
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Server Name</label>
+            <input type="text" name="name" required placeholder="IN – East – 1">
+        </div>
+
+        <div class="form-group">
+            <label>Location</label>
+            <input type="text" name="location" required placeholder="Visakhapatnam, India">
+        </div>
+
+        <div class="form-group">
+            <label>CPU Usage (%)</label>
+            <input type="number" name="cpu" min="0" max="100" required>
+        </div>
+
+        <div class="form-group">
+            <label>Memory Usage (%)</label>
+            <input type="number" name="memory" min="0" max="100" required>
+        </div>
+
+        <div class="form-group">
+            <label>Storage Usage (%)</label>
+            <input type="number" name="storage" min="0" max="100" required>
+        </div>
+
+        <div class="form-group">
+            <label>Uptime (30 days) %</label>
+            <input type="number" step="0.1" name="uptime" min="0" max="100" required>
+        </div>
+
+        <div class="form-group">
+            <label>Status</label>
+            <select name="status" required>
+                <option>Active</option>
+                <option>Maintenance</option>
+                <option>Offline</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Color Badge (HEX)</label>
+            <input type="text" name="color" value="#e8d7ff" required>
+        </div>
+
+        <button class="submit-btn" type="submit">Add Server</button>
+    </form>
+</div>
+{% endblock %}

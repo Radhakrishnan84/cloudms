@@ -1,0 +1,224 @@
+{% extends "adminpanel/base/admin_base.html" %}
+{% load static %}
+{% block title %}Admin Settings – CloudSync{% endblock %}
+{% block active_settings %}active{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/admin/settings.css' %}">
+
+<div class="settings-header">
+    <h2>Admin Settings</h2>
+    <p>Manage platform configuration and preferences</p>
+</div>
+
+<!-- ====================================================== -->
+<!-- PLATFORM SETTINGS -->
+<!-- ====================================================== -->
+<div class="settings-card">
+
+    <h4>Platform settings</h4>
+
+    <form method="POST" action="{% url 'admin_update_platform' %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Platform Name</label>
+            <input type="text" name="platform_name" value="{{ platform.name }}">
+        </div>
+
+        <div class="form-group">
+            <label>Support Email</label>
+            <input type="email" name="support_email" value="{{ platform.support_email }}">
+        </div>
+
+        <div class="form-group">
+            <label>Max File size (MB)</label>
+            <input type="number" name="max_file_size" value="{{ platform.max_file_size }}">
+        </div>
+
+        <button class="primary-btn">Save changes</button>
+    </form>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- STORAGE PLAN LIMITS -->
+<!-- ====================================================== -->
+<div class="settings-card">
+
+    <h4>Storage Plan Limits</h4>
+
+    <form method="POST" action="{% url 'admin_update_storage_limits' %}">
+        {% csrf_token %}
+
+        <div class="storage-grid">
+
+            <div class="storage-item">
+                <label>Free Plan (GB)</label>
+                <input type="number" name="free" value="{{ plans.free }}">
+            </div>
+
+            <div class="storage-item">
+                <label>Basic Plan (GB)</label>
+                <input type="number" name="basic" value="{{ plans.basic }}">
+            </div>
+
+            <div class="storage-item">
+                <label>Pro Plan (GB)</label>
+                <input type="number" name="pro" value="{{ plans.pro }}">
+            </div>
+
+            <div class="storage-item">
+                <label>Enterprise Plan (TB)</label>
+                <input type="number" name="enterprise" value="{{ plans.enterprise }}">
+            </div>
+
+        </div>
+
+        <button class="primary-btn">Update limits</button>
+    </form>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- FEATURE TOGGLE -->
+<!-- ====================================================== -->
+<div class="settings-card">
+
+    <h4>Feature toggle</h4>
+
+    <form method="POST" action="{% url 'admin_update_features' %}">
+        {% csrf_token %}
+
+        <div class="toggle-row">
+            <div class="left">
+                <strong>Allow file sharing</strong>
+                <p>Users can share files with others</p>
+            </div>
+
+            <label class="switch">
+                <input type="checkbox" name="file_sharing" {% if features.file_sharing %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="toggle-row">
+            <div class="left">
+                <strong>Public file links</strong>
+                <p>Allow users to create public links</p>
+            </div>
+
+            <label class="switch">
+                <input type="checkbox" name="public_links" {% if features.public_links %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="toggle-row">
+            <div class="left">
+                <strong>File versioning</strong>
+                <p>Keep previous versions of files</p>
+            </div>
+
+            <label class="switch">
+                <input type="checkbox" name="versioning" {% if features.versioning %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="toggle-row">
+            <div class="left">
+                <strong>User Registration</strong>
+                <p>Allow new user sign-ups</p>
+            </div>
+
+            <label class="switch">
+                <input type="checkbox" name="registration" {% if features.registration %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- SECURITY SETTINGS -->
+<!-- ====================================================== -->
+<div class="settings-card">
+
+    <h4>Security settings</h4>
+
+    <form method="POST" action="{% url 'admin_update_security' %}">
+        {% csrf_token %}
+
+        <div class="toggle-row">
+            <div class="left">
+                <strong>Require two-factor authentication</strong>
+                <p>Enforce 2FA for all users</p>
+            </div>
+
+            <label class="switch">
+                <input type="checkbox" name="two_factor" {% if security.two_factor %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="toggle-row">
+            <div class="left">
+                <strong>Password complexity</strong>
+                <p>Require strong passwords</p>
+            </div>
+
+            <label class="switch">
+                <input type="checkbox" name="password_complexity" {% if security.password_complexity %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label>Session Timeout (Minutes)</label>
+            <input type="number" name="session_timeout" value="{{ security.session_timeout }}">
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- MAINTENANCE MODE -->
+<!-- ====================================================== -->
+<div class="settings-card">
+
+    <h4>Maintenance mode</h4>
+
+    <form method="POST" action="{% url 'admin_update_maintenance' %}">
+        {% csrf_token %}
+
+        <div class="toggle-row">
+            <div class="left">
+                <strong>Enable maintenance mode</strong>
+                <p>Temporarily disable user access</p>
+            </div>
+
+            <label class="switch">
+                <input type="checkbox" name="maintenance" {% if maintenance.enabled %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label>Maintenance message</label>
+            <textarea name="message">{{ maintenance.message }}</textarea>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

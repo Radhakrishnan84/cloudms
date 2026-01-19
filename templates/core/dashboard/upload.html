@@ -1,0 +1,90 @@
+{% extends "base/dashboard_base.html" %}
+{% load static %}
+{% block title %}Upload – CloudSync{% endblock %}
+{% block active_upload %}active{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/user/upload.css' %}">
+
+<div class="upload-page">
+
+    <!-- HEADER -->
+    <h2 class="upload-title">Upload Files</h2>
+    <p class="upload-subtitle">Drag and drop your files or browse to upload</p>
+
+    <!-- UPLOAD BOX -->
+    <div class="drag-upload-box" id="dragArea">
+
+        <div class="upload-icon-box">
+    <img src="{% static 'images/cloud.png' %}" alt="upload icon">
+        </div>
+
+        <h3>Drag and drop files here</h3>
+        <p>Or click the button below to browse the files</p>
+
+        <label class="browse-btn">
+            Browse Files
+            <input type="file" id="fileInput" multiple hidden>
+        </label>
+
+        <div class="upload-supported">
+            <div><img src="{% static 'icons/documents.svg' %}"> Documents</div>
+            <div><img src="{% static 'icons/images.svg' %}"> Images</div>
+            <div><img src="{% static 'icons/videos.svg' %}"> Videos</div>
+        </div>
+
+    </div>
+
+    <!-- FOLDER DROPDOWN -->
+    <div class="folder-section">
+        <label>Upload to Folder</label>
+
+        <div class="custom-select">
+            <select id="folderSelect">
+                <option value="">Select Folder</option>
+
+                <!-- Default cloud folders -->
+                <option value="documents">Documents</option>
+                <option value="images">Images</option>
+                <option value="videos">Videos</option>
+                <option value="projects">Projects</option>
+
+                <!-- User-created folders from DB -->
+                {% for folder in folders %}
+                <option value="{{ folder.id }}">{{ folder.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- PROGRESS LIST -->
+    <div class="upload-page">
+
+    <div class="page-title">Uploading files</div>
+
+    <!-- Upload List -->
+    <div class="upload-progress-area" id="uploadList"></div>
+
+</div>
+
+    <!-- FOOTER -->
+    <div class="upload-footer">
+
+        <div class="tips-box">
+            <h4>Quick upload tips</h4>
+            <ul>
+                <li>Maximum file size is 500 MB</li>
+                <li>Drag multiple files at once</li>
+                <li>Organize files into folders</li>
+                <li>All file types supported</li>
+            </ul>
+        </div>
+
+        <img src="{% static 'images/3d-cloud.png' %}" class="footer-cloud">
+
+    </div>
+
+</div>
+
+<script src="{% static 'js/upload.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% load static %}
+<header class="navbar">
+  <div class="navbar-container">
+
+    <!-- Logo -->
+    <div class="nav-logo">
+      <img src="{% static 'images/logo.png' %}" alt="CloudSync">
+      <span>CloudSync</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav-links">
+      <a href="{%url 'home'%}" class="active">Home</a>
+      <a href="#pricing">Subscription</a>
+      <a href="#footer">Contact</a>
+    </nav>
+
+    <!-- Actions -->
+    <div class="nav-actions">
+      <span class="bell"><img src="{% static 'images/notification.png' %}">
+      </span>
+      <a href="{%url 'login'%}" class="login-btn">Login</a>
+    </div>
+
+  </div>
+</header>

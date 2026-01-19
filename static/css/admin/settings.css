@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+* {
+    font-family: "Roboto", sans-serif;
+    box-sizing: border-box;
+}
+
+body {
+    background: #f6f6fb;
+}
+
+.settings-header {
+    margin: 30px 60px 10px;
+}
+
+.settings-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.settings-header p {
+    color: gray;
+    margin-top: 6px;
+}
+
+/* CARD */
+.settings-card {
+    background: #fff;
+    margin: 25px 60px;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.settings-card h4 {
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+/* INPUTS */
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    font-size: 14px;
+    color: #444;
+}
+
+input, textarea {
+    width: 320px;
+    padding: 10px 14px;
+    margin-top: 6px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    outline: none;
+}
+
+/* BUTTON */
+.primary-btn {
+    margin-top: 15px;
+    background: #7a29ff;
+    color: white;
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(122,41,255,0.3);
+}
+
+/* STORAGE PLAN GRID */
+.storage-grid {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 25px;
+}
+
+.storage-item input {
+    width: 120px;
+}
+
+/* TOGGLE SWITCH */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 22px;
+}
+
+.switch input {
+    display: none;
+}
+
+.slider {
+    position: absolute;
+    inset: 0;
+    background: #ccc;
+    border-radius: 20px;
+    transition: 0.3s;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 2px;
+    top: 2px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+input:checked + .slider {
+    background: #7a29ff;
+}
+
+input:checked + .slider:before {
+    transform: translateX(24px);
+}
+
+/* Toggle Row */
+.toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+.toggle-row .left p {
+    font-size: 12px;
+    color: gray;
+}

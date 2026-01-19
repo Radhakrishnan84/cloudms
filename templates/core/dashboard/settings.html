@@ -1,0 +1,166 @@
+{% extends "base/dashboard_base.html" %}
+{% load static %}
+
+{% block title %}Settings – CloudSync{% endblock %}
+{% block active_settings %}active{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/user/settings.css' %}">
+<script src="{% static 'js/settings.js' %}"></script>
+
+<div class="settings-page">
+
+    <h2 class="page-title">Settings</h2>
+    <p class="page-sub">Manage your accounts and preferences</p>
+
+
+    <!-- ===========================
+         PROFILE INFORMATION
+    ============================ -->
+    <div class="card profile-card">
+
+        <h3>Profile Information</h3>
+
+        <div class="profile-header">
+
+            <!-- Profile Photo -->
+            <div class="photo-wrap">
+                <img id="profilePreview"
+                     src="{% if profile.photo %}{{ profile.photo.url }}{% else %}{% static 'images/default-user.png' %}{% endif %}"
+                     class="profile-photo">
+
+                <label class="upload-icon" for="photoInput">
+                    <img src="{% static 'icons/camera.svg' %}">
+                </label>
+            </div>
+
+            <!-- Upload Form -->
+            <form id="photoUploadForm" method="POST" enctype="multipart/form-data" style="display:none;">
+                {% csrf_token %}
+                <input type="file" id="photoInput" name="photo">
+                <input type="hidden" name="action" value="upload_photo">
+            </form>
+
+            <!-- Buttons -->
+            <div class="photo-actions">
+                <label for="photoInput" class="btn small">Upload photo</label>
+
+                {% if profile.photo %}
+                <form id="removePhotoForm" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="remove_photo">
+                    <button type="button" id="removePhotoBtn" class="btn small danger">Remove</button>
+                </form>
+                {% endif %}
+            </div>
+
+        </div>
+
+
+        <!-- Profile Form -->
+        <form id="profileForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_profile">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First name</label>
+                    <input type="text" name="first_name" value="{{ request.user.first_name }}">
+                </div>
+
+                <div class="form-group">
+                    <label>Last name</label>
+                    <input type="text" name="last_name" value="{{ request.user.last_name }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="email" value="{{ request.user.email }}">
+            </div>
+
+            <div class="form-group">
+                <label>Phone number</label>
+                <input type="text" name="phone" value="{{ profile.phone }}">
+            </div>
+
+            <div class="action-row">
+                <button type="button" id="saveProfileBtn" class="btn primary">Save Changes</button>
+                <button type="reset" class="btn outline">Cancel</button>
+            </div>
+
+        </form>
+    </div>
+
+
+
+    <!-- ===========================
+         PREFERENCES
+    ============================ -->
+    <div class="card pref-card">
+        <h3>Preferences</h3>
+
+        <div class="pref-item">
+            <div>
+                <h4>Dark mode</h4>
+                <p>Toggle between dark and light theme</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="darkModeToggle" {% if profile.dark_mode %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="pref-item">
+            <div>
+                <h4>Email notification</h4>
+                <p>Receive email updates about your files</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="emailNotifyToggle" {% if profile.email_notify %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="pref-item">
+            <div>
+                <h4>AutoSync Files</h4>
+                <p>Automatically sync files across devices</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="autosyncToggle" {% if profile.autosync %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+    </div>
+
+
+
+    <!-- ===========================
+         STORAGE PLAN
+    ============================ -->
+    <div class="card storage-card">
+
+        <h3>Storage Plan</h3>
+
+        <p class="plan-name">{{ subscription.plan }} Plan - {{ subscription.storage_limit }} GB</p>
+
+        <label>Storage used</label>
+        <div class="storage-progress">
+            <div class="fill" style="width: {{ storage_percent }}%"></div>
+        </div>
+
+        <p class="usage-text">{{ storage_used }} GB / {{ subscription.storage_limit }}GB</p>
+
+        <div class="upgrade-row">
+            <p>Need additional storage? Upgrade your plan</p>
+            <a href="/pricing/" class="btn primary">Upgrade Pro</a>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

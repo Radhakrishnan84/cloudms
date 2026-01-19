@@ -1,0 +1,179 @@
+{% extends "adminpanel/base/admin_base.html" %}
+{% load static %}
+{% block title %}Add File – CloudSync Admin{% endblock %}
+{% block active_files %}active{% endblock %}
+
+{% block content %}
+
+<style>
+
+    * { box-sizing: border-box; font-family: "Roboto", sans-serif; }
+
+.addfile-header {
+    padding: 30px 60px 10px;
+}
+
+.addfile-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.addfile-header p {
+    font-size: 14px;
+    color: #666;
+    margin-top: 6px;
+}
+
+/* Container */
+.addfile-container {
+    background: #fff;
+    margin: 30px 60px;
+    padding: 35px;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+
+/* Upload Box */
+.upload-box {
+    width: 100%;
+    height: 220px;
+    border: 2px dashed #cfcfcf;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: 0.2s ease;
+    text-align: center;
+    padding: 20px;
+}
+
+.upload-box.active {
+    background: #f7f1ff;
+    border-color: #7a29ff;
+}
+
+.upload-icon {
+    width: 65px;
+    opacity: 0.7;
+}
+
+.upload-title {
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.upload-sub {
+    margin-top: 4px;
+    font-size: 14px;
+    color: #777;
+}
+
+.upload-box input[type="file"] {
+    display: none;
+}
+
+/* File Preview */
+.file-preview {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #444;
+}
+
+/* Upload Button */
+.upload-btn {
+    background: #7a29ff;
+    color: #fff;
+    margin-top: 25px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    box-shadow: 0 3px 12px rgba(122,41,255,0.3);
+}
+
+.upload-btn img {
+    width: 18px;
+}
+
+
+
+</style>    
+
+<div class="addfile-header">
+    <h2>Add New File</h2>
+    <p>Upload a new file to your cloud storage system</p>
+</div>
+
+<div class="addfile-container">
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Upload Box -->
+        <div class="upload-box" id="dropArea">
+            <img src="{% static 'icons/upload-big.svg' %}" class="upload-icon">
+
+            <p class="upload-title">Drag & Drop your file here</p>
+            <p class="upload-sub">or click to browse</p>
+
+            <input type="file" name="file" id="fileInput" required>
+        </div>
+
+        <!-- File Name Preview -->
+        <p id="filePreview" class="file-preview">No file selected</p>
+
+        <!-- Submit -->
+        <button type="submit" class="upload-btn">
+            <img src="{% static 'icons/add.svg' %}"> Upload File
+        </button>
+
+    </form>
+
+</div>
+
+<script>
+/* -------------------------------------- */
+/* DRAG & DROP + FILE PREVIEW */
+/* -------------------------------------- */
+
+const dropArea = document.getElementById("dropArea");
+const fileInput = document.getElementById("fileInput");
+const preview = document.getElementById("filePreview");
+
+dropArea.addEventListener("click", () => fileInput.click());
+
+fileInput.addEventListener("change", () => {
+    preview.innerText = fileInput.files.length > 0
+        ? fileInput.files[0].name
+        : "No file selected";
+});
+
+dropArea.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropArea.classList.add("active");
+});
+
+dropArea.addEventListener("dragleave", () => {
+    dropArea.classList.remove("active");
+});
+
+dropArea.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropArea.classList.remove("active");
+
+    if (e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        preview.innerText = e.dataTransfer.files[0].name;
+    }
+});
+</script>
+
+{% endblock %}

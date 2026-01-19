@@ -1,0 +1,163 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}CloudSync Admin{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/admin/admin_base.css' %}">
+</head>
+
+<body>
+
+<!-- ====================== TOP NAV ====================== -->
+<header class="topnav">
+
+    <!-- Logo -->
+    <div class="logo">
+        <img src="{% static 'images/logo.png' %}">
+        <span>CloudSync</span>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" placeholder="Search...">
+        <img class="search-icon" src="{% static 'images/icons/search.png' %}">
+    </div>
+
+    <!-- Right Side -->
+    <div class="top-right">
+
+        <div class="bell" id="notificationBell">
+    <img src="{% static 'images/notification.png' %}">
+    <span class="count">{{ notifications|length }}</span>
+
+    <!-- DROPDOWN -->
+    <div class="notif-dropdown" id="notifDropdown">
+        <h4>Notifications</h4>
+
+        {% if notifications %}
+            {% for n in notifications %}
+            <div class="notif-item">
+                <span class="dot"></span>
+                <div class="notif-content">
+                    <p>{{ n.message }}</p>
+                    <small>{{ n.created_at|timesince }} ago</small>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="empty">No new notifications</p>
+        {% endif %}
+    </div>
+</div>
+
+        <!-- Profile button -->
+        <button class="user-btn" id="profileBtn">
+            <img src="{% static 'images/user1.png' %}" class="avatar">
+            <span class="user-name">{{ request.user.username }}</span>
+        </button>
+    </div>
+
+     <div class="profile-dropdown" id="profileDropdown">
+            <ul>
+                <li><a href="#">My Profile</a></li>
+                <li><a href="{% url 'login_admin' %}">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+
+</header>
+
+
+
+<!-- ====================== MAIN WRAPPER ====================== -->
+<div class="main-wrapper">
+
+    <!-- ====================== SIDEBAR ====================== -->
+    <aside class="sidebar">
+
+        <a href="{% url 'admin_dashboard' %}" class="side-item {% block active_dashboard %}{% endblock %}">
+            <img src="{% static 'images/icons/sb-dash.png' %}"> Dashboard
+        </a>
+
+        <a href="{% url 'admin_users' %}" class="side-item {% block active_users %}{% endblock %}">
+            <img src="{% static 'images/icons/sb-users.png' %}"> Users
+        </a>
+
+        <a href="{% url 'admin_files' %}" class="side-item {% block active_files %}{% endblock %}">
+            <img src="{% static 'images/icons/asd-files.png' %}"> Files
+        </a>
+
+        <a href="{% url 'admin_servers' %}" class="side-item {% block active_server %}{% endblock %}">
+            <img src="{% static 'images/icons/asd-store.png' %}"> Server
+        </a>
+
+        <a href="{% url 'admin_reports' %}" class="side-item {% block active_reports %}{% endblock %}">
+            <img src="{% static 'images/icons/asd-report.png' %}"> Reports
+        </a>
+
+        <a href="{% url 'admin_settings' %}" class="side-item {% block active_settings %}{% endblock %}">
+            <img src="{% static 'images/icons/sb-settings.png' %}"> Settings
+        </a>
+
+    </aside>
+
+    <!-- ====================== PAGE CONTENT ====================== -->
+    <section class="content-area">
+        {% block content %}
+        {% endblock %}
+    </section>
+
+</div>
+
+<script>
+
+    //notification dropdown
+
+   document.addEventListener("DOMContentLoaded", function () {
+    const bell = document.getElementById("notificationBell");
+    const dropdown = document.getElementById("notifDropdown");
+    const contentArea = document.querySelector(".main-wrapper");
+
+    bell.addEventListener("click", function (e) {
+        e.stopPropagation();
+
+        const isVisible = dropdown.style.display === "block";
+
+        // Toggle dropdown
+        dropdown.style.display = isVisible ? "none" : "block";
+
+        // Blur background only when visible
+        contentArea.classList.toggle("blur-bg", !isVisible);
+    });
+
+    // Close when clicking outside
+    document.addEventListener("click", function () {
+        dropdown.style.display = "none";
+        contentArea.classList.remove("blur-bg");
+    });
+
+    // Prevent closing when clicking inside dropdown
+    dropdown.addEventListener("click", function (e) {
+        e.stopPropagation();
+    });
+});
+
+//logout dropdown
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("profileBtn");
+    const menu = document.getElementById("profileDropdown");
+
+    btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    });
+
+    document.addEventListener("click", () => {
+        menu.style.display = "none";
+    });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+{% extends "adminpanel/base/admin_base.html" %}
+{% load static %}
+
+{% block title %}Edit User – CloudSync Admin{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/admin/users.css' %}">
+<style>
+.edit-container {
+    background: #fff;
+    margin: 40px 60px;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+    width: 70%;
+}
+
+.edit-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.edit-sub {
+    font-size: 14px;
+    color: #777;
+    margin-bottom: 25px;
+}
+
+.edit-form label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+    display: block;
+    margin-top: 20px;
+}
+
+.edit-form input, 
+.edit-form select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+.save-btn {
+    margin-top: 25px;
+    padding: 12px 25px;
+    background: #7a29ff;
+    color: #fff;
+    border-radius: 12px;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(122,41,255,0.3);
+}
+
+.back-btn {
+    margin-top: 25px;
+    margin-left: 15px;
+    padding: 12px 25px;
+    background: #ddd;
+    color: #333;
+    border-radius: 12px;
+    font-size: 15px;
+    text-decoration: none;
+}
+</style>
+
+<div class="edit-container">
+
+    <div class="edit-title">Edit User</div>
+    <div class="edit-sub">Update user details and subscription plan</div>
+
+    <form method="POST" class="edit-form">
+        {% csrf_token %}
+
+        <label>First Name</label>
+        <input name="first_name" value="{{ u.first_name }}" required>
+
+        <label>Last Name</label>
+        <input name="last_name" value="{{ u.last_name }}" required>
+
+        <label>Email Address</label>
+        <input type="email" name="email" value="{{ u.email }}" required>
+
+        <label>Plan</label>
+        <select name="plan">
+            <option value="Free" {% if sub.plan == "Free" %}selected{% endif %}>Free</option>
+            <option value="Basic" {% if sub.plan == "Basic" %}selected{% endif %}>Basic</option>
+            <option value="Pro" {% if sub.plan == "Pro" %}selected{% endif %}>Pro</option>
+            <option value="Enterprise" {% if sub.plan == "Enterprise" %}selected{% endif %}>Enterprise</option>
+        </select>
+
+        <button class="save-btn">Save Changes</button>
+        <a href="{% url 'admin_users' %}" class="back-btn">Cancel</a>
+
+    </form>
+
+</div>
+{% endblock %}

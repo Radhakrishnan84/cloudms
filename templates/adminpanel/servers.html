@@ -1,0 +1,78 @@
+{% extends "adminpanel/base/admin_base.html" %}
+{% load static %}
+{% block title %}Server Management – CloudSync Admin{% endblock %}
+{% block active_server %}active{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/admin/servers.css' %}">
+
+<!-- ===================== HEADER ======================= -->
+<div class="server-header">
+
+    <div class="server-title">
+        <h2>Server Management</h2>
+        <p>Monitor and manage infrastructure servers</p>
+    </div>
+
+    <a href="{% url 'admin_add_server' %}" class="add-server-btn">
+        <img src="{% static 'images/icons/add.png' %}" alt="add">
+        Add Server
+    </a>
+
+</div>
+
+<!-- ===================== SERVER GRID ======================= -->
+<div class="server-grid">
+
+    {% for server in servers %}
+    <div class="server-card">
+
+        <!-- Icon + Title -->
+        <div class="server-top">
+            <div class="server-icon" style="background: {{ server.color }};">
+                <img src="{% static 'images/icons/sr1.png' %}">
+            </div>
+
+            <div>
+                <h3>{{ server.name }}</h3>
+                <p class="location">{{ server.location }}</p>
+            </div>
+
+            <!-- Status Badge -->
+            <span class="status-badge {{ server.status|lower }}">
+                {{ server.status }}
+            </span>
+
+            <!-- Action menu -->
+            <div class="action-menu">
+                <img src="{% static 'images/icons/dropdown.png' %}" class="action-icon">
+                <div class="action-dropdown">
+                    <a href="{% url 'admin_view_server' server.id %}">View</a>
+                    <a href="{% url 'admin_edit_server' server.id %}">Edit</a>
+                    <a href="#" class="delete">Delete</a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Usage Bars -->
+        <div class="usage">
+            <label>CPU usage</label>
+            <div class="bar"><div style="width: {{ server.cpu }}%"></div></div>
+
+            <label>Memory usage</label>
+            <div class="bar"><div style="width: {{ server.memory }}%"></div></div>
+
+            <label>Storage usage</label>
+            <div class="bar"><div style="width: {{ server.storage }}%"></div></div>
+        </div>
+
+        <p class="uptime">Uptime (30 days) <span>{{ server.uptime }}%</span></p>
+
+    </div>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

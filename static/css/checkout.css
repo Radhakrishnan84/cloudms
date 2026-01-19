@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+body {
+    background: #f8f9ff;
+    font-family: "Roboto", sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+}
+
+.checkout-wrapper {
+    width: 90%;
+    max-width: 1180px;
+    display: flex;
+    gap: 40px;
+    align-items: center;
+}
+
+/* LEFT SIDE */
+.checkout-card {
+    flex: 1;
+    background: #fff;
+    padding: 35px;
+    border-radius: 18px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+}
+
+.title {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.plan-box {
+    background: #f5f0ff;
+    padding: 20px;
+    border-radius: 14px;
+    border: 2px solid #d8caff;
+}
+
+.plan-box h3 {
+    font-size: 22px;
+}
+
+.storage {
+    color: #6a00ff;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.feature-list {
+    list-style: none;
+    margin: 15px 0;
+}
+
+.feature-list li {
+    margin: 6px 0;
+    font-size: 14px;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 18px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.pay-btn {
+    width: 100%;
+    margin-top: 30px;
+    padding: 14px;
+    border: none;
+    font-size: 16px;
+    background: #6a00ff;
+    color: white;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+
+.pay-btn:hover {
+    background: #5500d4;
+}
+
+.safe-text {
+    text-align: center;
+    margin-top: 10px;
+    color: #777;
+}
+
+/* RIGHT IMAGE */
+.checkout-image img {
+    width: 480px;
+}
