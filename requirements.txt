@@ -1,0 +1,6 @@
+Django
+djangorestframework
+Pillow
+python-dotenv
+psycopg2
+reportlab
