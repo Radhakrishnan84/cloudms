@@ -86,6 +86,10 @@ ALLOWED_HOSTS = [
     "cloudms-4.onrender.com",   # ← add this
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://cloudms-4.onrender.com",
+]
+
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
