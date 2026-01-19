@@ -80,6 +80,13 @@ DATABASES = {
     }
 }
 
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "cloudms-4.onrender.com",   # ← add this
+]
+
+
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
