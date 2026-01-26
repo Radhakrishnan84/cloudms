@@ -13,15 +13,15 @@ class PricingPlan:
             "amount": 499,
             "name": "Pro Plan"
         },
-        "enterprise": {
+        "premium": {
             "amount": 999,
-            "name": "Enterprise Plan"
+            "name": "premium plan"
         }
     }
 
 #dashboard
 
-class File(models.Model):
+class UserFile(models.Model):
     CATEGORY_CHOICES = [
         ("document", "Document"),
         ("image", "Image"),
@@ -88,7 +88,6 @@ class Plan(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class File(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

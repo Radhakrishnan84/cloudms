@@ -15,7 +15,7 @@ from django.utils import timezone
 from datetime import timedelta
 from apps.core.utils.payments import razorpay_client
 from django.http import JsonResponse
-from .models import File, Subscription, Folder, SharedFile, Profile, ActivityLog
+from .models import UserFile, Subscription, Folder, SharedFile, Profile, ActivityLog, File
 from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -242,7 +242,7 @@ def upload(request):
         # folder
         folder = Folder.objects.get(id=folder_id, user=user) if folder_id else None
 
-        File.objects.create(
+        UserFile.objects.create(
             user=user,
             file=file,
             name=file.name,
@@ -413,7 +413,7 @@ def settings_view(request):
         sub = None
 
     # ---- Calculate storage usage ----
-    files = File.objects.filter(user=user)
+    files = UserFile.objects.filter(user=user)
     storage_used = round(sum(f.size for f in files), 2)  # in GB
     storage_total = sub.storage_limit if sub else 0
     storage_percent = int((storage_used / storage_total) * 100) if storage_total else 0
