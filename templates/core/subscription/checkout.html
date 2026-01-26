@@ -72,18 +72,18 @@ function payNow() {
 
         var options = {
             key: "{{ razorpay_key }}",
-            amount: "{{ amount }}00",
+            amount: data.amount,          // 🔥 USE SERVER AMOUNT
             currency: "INR",
             name: "CloudSync",
             description: "Subscription Payment",
-            order_id: data.order.id,   // ✅ FIXED HERE
+            order_id: data.order_id,      // 🔥 CORRECT ORDER ID
             handler: function (response) {
 
                 fetch("/payment/verify/", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                        "X-CSRFToken": "{{ csrf_token }}"
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/x-www-form-urlencoded"
                     },
                     body: new URLSearchParams({
                         razorpay_payment_id: response.razorpay_payment_id,
@@ -100,9 +100,6 @@ function payNow() {
                         alert("Payment verification failed");
                     }
                 });
-            },
-            theme: {
-                color: "#6C2BD9"
             }
         };
 
@@ -111,6 +108,7 @@ function payNow() {
     });
 }
 </script>
+
 
 
 

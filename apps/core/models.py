@@ -14,7 +14,7 @@ class PricingPlan:
             "name": "Pro Plan"
         },
         "enterprise": {
-            "amount": 1999,
+            "amount": 999,
             "name": "Enterprise Plan"
         }
     }
