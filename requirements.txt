@@ -2,6 +2,8 @@ Django
 djangorestframework
 Pillow
 python-dotenv
+cloudinary
+django-cloudinary-storage
 psycopg2
 reportlab
 razorpay

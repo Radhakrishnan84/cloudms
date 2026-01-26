@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 import razorpay
+import cloudinary.uploader
 from .models import PricingPlan
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate
@@ -15,7 +16,7 @@ from django.utils import timezone
 from datetime import timedelta
 from apps.core.utils.payments import razorpay_client
 from django.http import JsonResponse
-from .models import File, Subscription, Folder, SharedFile, Profile, ActivityLog
+from .models import File, Subscription, Folder, SharedFile, Profile, ActivityLog, CloudFile
 from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -220,7 +221,6 @@ def calculate_storage(user):
 def upload(request):
     user = request.user
 
-    # ---------------- SUBSCRIPTION CHECK ----------------
     try:
         sub = Subscription.objects.get(user=user)
     except Subscription.DoesNotExist:
@@ -229,66 +229,43 @@ def upload(request):
     if not sub.is_active():
         return redirect("subscription_expired")
 
-    # ---------------- FILE UPLOAD ----------------
     if request.method == "POST":
         file = request.FILES.get("file")
-        folder_name = request.POST.get("folder")  # string folder name
+        folder = request.POST.get("folder", "uploads")
 
         if not file:
             return JsonResponse({"error": "No file uploaded"}, status=400)
 
-        # File size
         size_mb = round(file.size / (1024 * 1024), 2)
-
-        # Storage check
         _, used, total, _, _ = calculate_storage(user)
+
         if used + size_mb > total:
             return JsonResponse(
                 {"error": "Storage limit reached! Upgrade your plan."},
                 status=403
             )
 
-        # ---------------- FILE SYSTEM PATH ----------------
-        user_root = os.path.join(settings.MEDIA_ROOT, f"user_{user.id}")
-        os.makedirs(user_root, exist_ok=True)
+        try:
+            result = cloudinary.uploader.upload(
+                file,
+                folder=f"cloudsync/user_{user.id}/{folder}",
+                resource_type="auto"
+            )
 
-        if folder_name:
-            upload_dir = os.path.join(user_root, folder_name)
-        else:
-            upload_dir = os.path.join(user_root, "uploads")
+            CloudFile.objects.create(
+                user=user,
+                name=file.name,
+                size=size_mb,
+                url=result["secure_url"],
+                public_id=result["public_id"]
+            )
 
-        os.makedirs(upload_dir, exist_ok=True)
+            return JsonResponse({"success": True})
 
-        # Save file manually
-        file_path = os.path.join(upload_dir, file.name)
-        with open(file_path, "wb+") as destination:
-            for chunk in file.chunks():
-                destination.write(chunk)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
 
-        return JsonResponse({"success": True})
-
-    # ---------------- STORAGE INFO ----------------
-    sub, storage_used, storage_total, storage_percent, storage_full = calculate_storage(user)
-
-    # Folder list from filesystem
-    user_root = os.path.join(settings.MEDIA_ROOT, f"user_{user.id}")
-    folders = []
-    if os.path.exists(user_root):
-        folders = [
-            d for d in os.listdir(user_root)
-            if os.path.isdir(os.path.join(user_root, d))
-        ]
-
-    context = {
-        "folders": folders,
-        "sub": sub,
-        "storage_used": storage_used,
-        "storage_total": storage_total,
-        "storage_percent": storage_percent,
-        "storage_full": storage_full,
-    }
-
-    return render(request, "core/dashboard/upload.html", context)
+    return render(request, "core/dashboard/upload.html")
 
 
 # ---------------------------------------------------------
@@ -320,6 +297,12 @@ def shared_view(request):
     }
 
     return render(request, "core/dashboard/shared.html", context)
+
+def delete_file(request, file_id):
+    file = CloudFile.objects.get(id=file_id, user=request.user)
+    cloudinary.uploader.destroy(file.public_id, resource_type="auto")
+    file.delete()
+    return redirect("my_files")
 
 
 # ---------------------------------------------------------
