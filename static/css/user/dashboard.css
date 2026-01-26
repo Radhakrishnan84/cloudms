@@ -37,7 +37,7 @@ body {
 .topnav .logo span {
     font-size: 22px;
     font-weight: 700;
-    color: #7a3cff;
+    color: #742BFA;
 }
 
 /* Search bar container */
@@ -110,7 +110,7 @@ body {
     position: absolute;
     top: -6px;
     right: -6px;
-    background: #7a3cff;
+    background: #742BFA;
     color: #fff;
     border-radius: 50%;
     font-size: 11px;
@@ -148,7 +148,7 @@ body {
 .notif-item .dot {
     width: 8px;
     height: 8px;
-    background: #6a00ff;
+    background: #742BFA;
     border-radius: 50%;
     margin-top: 7px;
 }
@@ -187,7 +187,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: linear-gradient(145deg,#742BFA , #A43AF0);
+    background: linear-gradient(#742BFA , #A43AF0);
     padding: 7px 16px 7px 7px;
     border-radius: 30px;
     border: 1px solid #e6d7ff;
@@ -300,11 +300,11 @@ body {
 
 .side-item:hover {
     background: #f3eaff;
-    color: #7b3df0;
+    color: #742BFA;
 }
 
 .side-item.active {
-    background: #7b3df0;
+    background: #742BFA;
     color: #fff !important;
     border-radius: 0 30px 30px 0;
 }
@@ -339,7 +339,7 @@ body {
 }
 
 .progress-bar .fill {
-    background: #7b3df0;
+    background: #742BFA;
     height: 100%;
     border-radius: 20px;
 }
@@ -351,7 +351,7 @@ body {
 }
 
 .upgrade-btn {
-    border: 1px solid #7b3df0;
+    border: 1px solid #742BFA;
     background: linear-gradient(#742BFA , #A43AF0);
     padding: 8px 16px;
     border-radius: 8px;
@@ -368,7 +368,7 @@ body {
 }
 
 .upgrade-btn :hover {
-    background: #7b3df0;
+    background: #742BFA;
     color: #fff;
     cursor: pointer;
 }
@@ -458,7 +458,7 @@ body {
     bottom: 18px;
     right: 22px;
     font-size: 14px;
-    color: #7b3df0;
+    color: #742BFA;
     text-decoration: none;
     font-weight: 600;
 }

@@ -531,8 +531,8 @@ def checkout_view(request, plan):
 
     PLAN_DATA = {
         "free": {"name": "FREE", "storage": 5, "duration": None, "amount": 0},
-        "pro": {"name": "PRO", "storage": 50, "duration": 30, "amount": 9999},
-        "premium": {"name": "PREMIUM", "storage": 200, "duration": 30, "amount": 29999},
+        "pro": {"name": "PRO", "storage": 50, "duration": 30, "amount": 499},
+        "premium": {"name": "PREMIUM", "storage": 200, "duration": 30, "amount": 999},
     }
 
     if plan not in PLAN_DATA:

@@ -315,7 +315,7 @@
 .price-size {
     font-size: 22px;
     font-weight: 700;
-    color: #7c4cff;
+    color: #742BFA;
 }
 
 .price-card ul {
@@ -330,7 +330,7 @@
 }
 
 .price-card:hover {
-    border: 3px solid #7c4cff;
+    border: 3px solid #742BFA;
     transform: scale(1.04);
 }
 

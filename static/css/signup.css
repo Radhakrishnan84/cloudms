@@ -55,7 +55,7 @@ html, body {
 
 .signup-logo h2 {
     font-size: 26px;
-    color: #7a3cff;
+    color: #742BFA;
     font-weight: 700;
 }
 
@@ -116,7 +116,7 @@ form input {
 }
 
 form input:focus {
-    border-color: #7a3cff;
+    border-color: #742BFA;
     outline: none;
 }
 
@@ -146,7 +146,7 @@ form input:focus {
 }
 
 .signup-footer a {
-    color: #7a3cff;
+    color: #742BFA;
     text-decoration: none;
 }
 

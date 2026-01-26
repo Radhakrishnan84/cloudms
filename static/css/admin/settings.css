@@ -59,7 +59,7 @@ input, textarea {
 /* BUTTON */
 .primary-btn {
     margin-top: 15px;
-    background: #7a29ff;
+    background: #742BFA;
     color: white;
     padding: 10px 22px;
     border-radius: 10px;
@@ -112,7 +112,7 @@ input, textarea {
 }
 
 input:checked + .slider {
-    background: #7a29ff;
+    background: #742BFA;
 }
 
 input:checked + .slider:before {
