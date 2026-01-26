@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 import razorpay
-import cloudinary.uploader
 from .models import PricingPlan
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate
@@ -16,7 +15,7 @@ from django.utils import timezone
 from datetime import timedelta
 from apps.core.utils.payments import razorpay_client
 from django.http import JsonResponse
-from .models import File, Subscription, Folder, SharedFile, Profile, ActivityLog, CloudFile
+from .models import File, Subscription, Folder, SharedFile, Profile, ActivityLog
 from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -25,7 +24,6 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from reportlab.pdfgen import canvas
 import io
-import os
 from django.http import FileResponse
 from django.contrib.auth import logout
 
@@ -196,22 +194,18 @@ def dashboard_view(request):
 # Storage Calculation (used by all pages)
 # ---------------------------------------------------------
 def calculate_storage(user):
-    user_root = os.path.join(settings.MEDIA_ROOT, f"user_{user.id}")
-    total_used = 0
+    try:
+        sub = Subscription.objects.get(user=user)
+    except Subscription.DoesNotExist:
+        return None, 0, 0, 0, False
 
-    if os.path.exists(user_root):
-        for root, dirs, files in os.walk(user_root):
-            for f in files:
-                fp = os.path.join(root, f)
-                total_used += os.path.getsize(fp)
+    files = File.objects.filter(user=user)
+    storage_used = round(sum(f.size for f in files), 2)  # MB or GB based on your units
+    storage_total = sub.storage_limit
+    storage_percent = int((storage_used / storage_total) * 100) if storage_total > 0 else 0
+    storage_full = storage_used >= storage_total
 
-    used_gb = round(total_used / (1024 * 1024), 2)
-    sub = Subscription.objects.get(user=user)
-    total = sub.storage_limit
-    percent = int((used_gb / total) * 100) if total else 0
-    full = used_gb >= total
-
-    return sub, used_gb, total, percent, full
+    return sub, storage_used, storage_total, storage_percent, storage_full
 
 
 # ---------------------------------------------------------
@@ -221,6 +215,7 @@ def calculate_storage(user):
 def upload(request):
     user = request.user
 
+    # subscription check
     try:
         sub = Subscription.objects.get(user=user)
     except Subscription.DoesNotExist:
@@ -229,43 +224,49 @@ def upload(request):
     if not sub.is_active():
         return redirect("subscription_expired")
 
+    # ------------- File Upload POST --------------
     if request.method == "POST":
         file = request.FILES.get("file")
-        folder = request.POST.get("folder", "uploads")
+        folder_id = request.POST.get("folder")
 
         if not file:
             return JsonResponse({"error": "No file uploaded"}, status=400)
 
+        # check storage limit
         size_mb = round(file.size / (1024 * 1024), 2)
         _, used, total, _, _ = calculate_storage(user)
 
         if used + size_mb > total:
-            return JsonResponse(
-                {"error": "Storage limit reached! Upgrade your plan."},
-                status=403
-            )
+            return JsonResponse({"error": "Storage limit reached! Upgrade your plan."}, status=403)
 
-        try:
-            result = cloudinary.uploader.upload(
-                file,
-                folder=f"cloudsync/user_{user.id}/{folder}",
-                resource_type="auto"
-            )
+        # folder
+        folder = Folder.objects.get(id=folder_id, user=user) if folder_id else None
 
-            CloudFile.objects.create(
-                user=user,
-                name=file.name,
-                size=size_mb,
-                url=result["secure_url"],
-                public_id=result["public_id"]
-            )
+        File.objects.create(
+            user=user,
+            file=file,
+            name=file.name,
+            size=size_mb,
+            folder=folder
+        )
 
-            return JsonResponse({"success": True})
+        return JsonResponse({"success": True})
 
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
+    # ---------------- STORAGE INFO ----------------
+    sub, storage_used, storage_total, storage_percent, storage_full = calculate_storage(user)
 
-    return render(request, "core/dashboard/upload.html")
+    folders = Folder.objects.filter(user=user)
+
+    context = {
+        "folders": folders,
+        "sub": sub,
+        "storage_used": storage_used,
+        "storage_total": storage_total,
+        "storage_percent": storage_percent,
+        "storage_full": storage_full,
+    }
+
+    return render(request, "core/dashboard/upload.html", context)
 
 
 # ---------------------------------------------------------
@@ -297,12 +298,6 @@ def shared_view(request):
     }
 
     return render(request, "core/dashboard/shared.html", context)
-
-def delete_file(request, file_id):
-    file = CloudFile.objects.get(id=file_id, user=request.user)
-    cloudinary.uploader.destroy(file.public_id, resource_type="auto")
-    file.delete()
-    return redirect("my_files")
 
 
 # ---------------------------------------------------------
