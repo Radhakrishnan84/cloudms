@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Roboto", sans-serif;
+}
+
+
+.files-page {
+    padding: 25px 30px;
+}
+
+/* Header */
+.page-title {
+     font-size: 22px;
+    font-weight: 700;
+    padding-top: 70px;
+    padding-left: 50px;
+}
+.page-sub {
+    color: #777;
+    margin-bottom: 25px;
+    margin-top: 10px;
+    padding-left: 50px;
+}
+
+/* Table Header */
+.table-header {
+    background: #fafafa;
+    padding: 12px 20px;
+    margin-top: 25px;
+    display: grid;
+    grid-template-columns: 1fr 150px 150px;
+    border-bottom: 1px solid #ececec;
+    border-radius: 8px 8px 0 0;
+}
+
+.table-header .col {
+    font-weight: 600;
+    color: #444;
+}
+
+.table-header img {
+    width: 18px;
+    margin-right: 8px;
+    position: relative;
+    top: 3px;
+}
+
+/* File Row */
+.file-row {
+    background: #fff;
+    padding: 18px 20px;
+    display: grid;
+    grid-template-columns: 1fr 150px 150px;
+    align-items: center;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.file-row:hover {
+    background: #f7f7f7;
+}
+
+.file-name {
+    display: flex;
+    align-items: center;
+}
+
+.file-icon img {
+    width: 48px;
+}
+
+.file-meta {
+    margin-left: 14px;
+}
+
+.file-meta h4 {
+    margin: 0;
+    font-size: 15px;
+}
+
+.file-meta p {
+    margin: 2px 0;
+    font-size: 13px;
+    color: #777;
+}
+
+/* Columns */
+.col {
+    font-size: 14px;
+}
+
+/* Empty message */
+.empty {
+    padding: 40px;
+    text-align: center;
+    color: #777;
+}

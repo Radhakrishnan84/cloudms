@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Roboto", sans-serif;
+}
+
+body {
+    background: #f7f7fb;
+}
+/* Dashboard Header */
+.dashboard-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    padding-top: 70px;
+    padding-left: 50px;
+}
+.dashboard-header p {
+    color: #777;
+    margin-bottom: 25px;
+    margin-top: 10px;
+    padding-left: 50px;
+}
+
+/* Metrics Section */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.metric-card {
+    background: #fff;
+    padding: 22px;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+.metric-icon img {
+    width: 28px;
+}
+
+.purple-bg {
+    background: #f3e8ff;
+}
+
+.metric-title {
+    color: #777;
+    font-size: 13px;
+}
+.metric-value {
+    font-size: 26px;
+    font-weight: bold;
+    margin: 4px 0;
+}
+.metric-trend {
+    font-size: 12px;
+    color: #39c463;
+}
+
+.metric-card:hover{
+    cursor: pointer;
+    transform: translateY(-4px);
+}
+
+/* Charts Grid */
+.middle-grid, .bottom-grid {
+    margin-top: 35px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.chart-box {
+    background: #fff;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.chart-sub {
+    font-size: 13px;
+    color: #777;
+}
+.chart-img {
+    width: 100%;
+    margin-top: 15px;
+}
+
+/* Activity Box */
+.activity-box {
+    background: #fff;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.activity-list {
+    margin-top: 20px;
+    list-style: none;
+    padding: 0;
+}
+.activity-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f2f2f2;
+}
+.activity-dot {
+    width: 8px;
+    height: 8px;
+    background: #742BFA;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+.user-name {
+    font-weight: 600;
+}
+.activity-text {
+    color: #444;
+    margin-left: 5px;
+}
+.activity-time {
+    font-size: 12px;
+    color: #999;
+}
+

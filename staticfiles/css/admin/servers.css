@@ -1,0 +1,228 @@
+/* ---------------------------------
+   GLOBAL
+---------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Roboto", sans-serif;
+}
+
+body {
+    background: #f7f7fb;
+}
+
+/* ---------------------------------
+   HEADER SECTION
+---------------------------------- */
+.server-header {
+    padding: 30px 60px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.server-title h2 {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.server-title p {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #777;
+}
+
+/* Add Server Button */
+.add-server-btn {
+    background: #742BFA;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 12px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(122,41,255,0.25);
+    font-size: 14px;
+}
+
+.add-server-btn img {
+    width: 18px;
+}
+
+/* ---------------------------------
+   SERVER GRID
+---------------------------------- */
+.server-grid {
+    margin: 30px 60px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+}
+
+@media (max-width: 1200px) {
+    .server-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 750px) {
+    .server-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------------------------------
+   SERVER CARD
+---------------------------------- */
+.server-card {
+    background: #fff;
+    padding: 26px;
+    width: 500px;
+    border-radius: 16px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    transition: transform 0.2s ease;
+    position: relative;
+}
+
+.server-card:hover {
+    transform: translateY(-4px);
+}
+
+/* Top Section */
+.server-top {
+    display: grid;
+    grid-template-columns: 60px 1fr auto auto;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* Server Icon */
+.server-icon {
+    width: 55px;
+    height: 55px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.server-icon img {
+    width: 28px;
+}
+
+/* Server title */
+.server-top h3 {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.server-top .location {
+    font-size: 13px;
+    color: #777;
+    margin-top: 3px;
+}
+
+/* Status Badge */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.active {
+    background: #d8ffe1;
+    color: #1ea94b;
+}
+
+.status-badge.down {
+    background: #ffe5e5;
+    color: #ff4a4a;
+}
+
+.status-badge.maintenance {
+    background: #fff4cf;
+    color: #d6a300;
+}
+
+/* Action menu */
+.action-menu {
+    position: relative;
+}
+
+.action-icon {
+    width: 20px;
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.action-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 26px;
+    width: 140px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+    z-index: 50;
+}
+
+.action-dropdown a {
+    display: block;
+    padding: 12px 14px;
+    font-size: 14px;
+    border-bottom: 1px solid #f3f3f3;
+}
+
+.action-dropdown a:last-child {
+    border-bottom: none;
+}
+
+.action-dropdown a.delete {
+    color: #ff3b3b;
+}
+
+.action-menu:hover .action-dropdown {
+    display: block;
+}
+
+/* ---------------------------------
+   USAGE BARS
+---------------------------------- */
+.usage label {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 3px;
+    display: block;
+}
+
+.bar {
+    height: 9px;
+    background: #ececec;
+    border-radius: 20px;
+    margin-bottom: 14px;
+    overflow: hidden;
+}
+
+.bar div {
+    height: 9px;
+    background: #742BFA;
+    border-radius: 20px;
+}
+
+/* Uptime text */
+.uptime {
+    font-size: 13px;
+    margin-top: 8px;
+    color: #444;
+}
+
+.uptime span {
+    font-weight: 600;
+}

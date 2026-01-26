@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+
+body {
+    background: #f7f7ff;
+    font-family: "Roboto", sans-serif;
+}
+
+.pricing-header {
+    text-align: center;
+    padding: 90px 0 40px;
+}
+
+.pricing-header h1 {
+    font-size: 42px;
+    font-weight: 700;
+    color: #742BFA;
+    margin-bottom: 10px;
+}
+
+.pricing-header p {
+    color: #666;
+    font-size: 18px;
+}
+
+.pricing-container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding: 40px 10%;
+    flex-wrap: wrap;
+}
+
+/* Plan Card */
+.plan-card {
+    background: #ffffff;
+    width: 320px;
+    padding: 40px 30px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 5px 18px rgba(150, 150, 150, 0.18);
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.plan-card:hover {
+    transform: translateY(-6px);
+}
+
+.plan-card.active {
+    border: 3px solid #742BFA;
+    transform: scale(1.03);
+}
+
+.plan-card .badge {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    background: #742BFA;
+    color: white;
+    padding: 6px 16px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.plan-card h2 {
+    font-size: 26px;
+    margin-bottom: 5px;
+}
+
+.storage {
+    color: #742BFA;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+.features {
+    text-align: left;
+    margin: 0 auto 30px;
+    width: fit-content;
+}
+
+.features li {
+    margin-bottom: 10px;
+    color: #555;
+    font-size: 15px;
+}
+
+.btn-primary,
+.btn-outline {
+    display: block;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg,#742BFA,#A43AF0);
+    color: white;
+}
+
+.btn-outline {
+    border: 2px solid #742BFA;
+    color: #742BFA;
+    background: transparent;
+}
