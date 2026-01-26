@@ -586,35 +586,33 @@ def create_order(request):
 
 @login_required
 @csrf_exempt
-def payment_verify(request):
+def verify_payment(request):
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request"}, status=400)
 
-    client = razorpay.Client(
-        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
-    )
+    razorpay_payment_id = request.POST.get("razorpay_payment_id")
+    razorpay_order_id = request.POST.get("razorpay_order_id")
+    razorpay_signature = request.POST.get("razorpay_signature")
+    plan = request.POST.get("plan")
 
-    data = request.POST
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
     try:
         client.utility.verify_payment_signature({
-            "razorpay_order_id": data.get("razorpay_order_id"),
-            "razorpay_payment_id": data.get("razorpay_payment_id"),
-            "razorpay_signature": data.get("razorpay_signature"),
+            "razorpay_payment_id": razorpay_payment_id,
+            "razorpay_order_id": razorpay_order_id,
+            "razorpay_signature": razorpay_signature
         })
     except razorpay.errors.SignatureVerificationError:
-        return JsonResponse({"error": "Payment verification failed"}, status=400)
+        return JsonResponse({"status": "failed"})
 
-    # ✅ ACTIVATE SUBSCRIPTION AFTER SUCCESS
-    plan = data.get("plan")
-
+    # ✅ Activate subscription
     PLAN_DATA = {
         "pro": {"name": "PRO", "storage": 50, "duration": 30},
         "premium": {"name": "PREMIUM", "storage": 200, "duration": 30},
     }
 
     plan_info = PLAN_DATA.get(plan)
-
     sub, _ = Subscription.objects.get_or_create(user=request.user)
     sub.plan = plan_info["name"]
     sub.storage_limit = plan_info["storage"]
@@ -622,7 +620,7 @@ def payment_verify(request):
     sub.end_date = timezone.now() + timezone.timedelta(days=plan_info["duration"])
     sub.save()
 
-    return JsonResponse({"success": True})
+    return JsonResponse({"status": "success"})
 
     
 def download_invoice(request, order_id):
