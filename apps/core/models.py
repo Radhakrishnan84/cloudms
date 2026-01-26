@@ -66,17 +66,7 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.user.username} – {self.plan}"
-    
-class CloudFile(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
-    size = models.FloatField()
-    url = models.URLField()
-    public_id = models.CharField(max_length=255)
-    uploaded_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.name
 
 # Admin setup
 

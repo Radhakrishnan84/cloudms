@@ -199,7 +199,7 @@ def calculate_storage(user):
     except Subscription.DoesNotExist:
         return None, 0, 0, 0, False
 
-    files = File.objects.filter(user=user)
+    files = UserFile.objects.filter(user=user)
     storage_used = round(sum(f.size for f in files), 2)  # MB or GB based on your units
     storage_total = sub.storage_limit
     storage_percent = int((storage_used / storage_total) * 100) if storage_total > 0 else 0
@@ -215,7 +215,6 @@ def calculate_storage(user):
 def upload(request):
     user = request.user
 
-    # subscription check
     try:
         sub = Subscription.objects.get(user=user)
     except Subscription.DoesNotExist:
@@ -224,7 +223,6 @@ def upload(request):
     if not sub.is_active():
         return redirect("subscription_expired")
 
-    # ------------- File Upload POST --------------
     if request.method == "POST":
         file = request.FILES.get("file")
         folder_id = request.POST.get("folder")
@@ -232,14 +230,23 @@ def upload(request):
         if not file:
             return JsonResponse({"error": "No file uploaded"}, status=400)
 
-        # check storage limit
         size_mb = round(file.size / (1024 * 1024), 2)
         _, used, total, _, _ = calculate_storage(user)
 
         if used + size_mb > total:
             return JsonResponse({"error": "Storage limit reached! Upgrade your plan."}, status=403)
 
-        # folder
+        # 🔹 FILE CATEGORY DETECTION
+        ext = file.name.split(".")[-1].lower()
+        if ext in ["jpg", "jpeg", "png", "gif", "webp"]:
+            category = "image"
+        elif ext in ["mp4", "avi", "mov"]:
+            category = "video"
+        elif ext in ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"]:
+            category = "document"
+        else:
+            category = "other"
+
         folder = Folder.objects.get(id=folder_id, user=user) if folder_id else None
 
         UserFile.objects.create(
@@ -247,26 +254,24 @@ def upload(request):
             file=file,
             name=file.name,
             size=size_mb,
-            folder=folder
+            category=category,   # ✅ REQUIRED
+            folder=folder if hasattr(UserFile, "folder") else None
         )
 
         return JsonResponse({"success": True})
 
-    # ---------------- STORAGE INFO ----------------
     sub, storage_used, storage_total, storage_percent, storage_full = calculate_storage(user)
-
     folders = Folder.objects.filter(user=user)
 
-    context = {
+    return render(request, "core/dashboard/upload.html", {
         "folders": folders,
         "sub": sub,
         "storage_used": storage_used,
         "storage_total": storage_total,
         "storage_percent": storage_percent,
         "storage_full": storage_full,
-    }
+    })
 
-    return render(request, "core/dashboard/upload.html", context)
 
 
 # ---------------------------------------------------------
