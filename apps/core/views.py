@@ -24,6 +24,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from reportlab.pdfgen import canvas
 import io
+import os
 from django.http import FileResponse
 from django.contrib.auth import logout
 
@@ -194,18 +195,22 @@ def dashboard_view(request):
 # Storage Calculation (used by all pages)
 # ---------------------------------------------------------
 def calculate_storage(user):
-    try:
-        sub = Subscription.objects.get(user=user)
-    except Subscription.DoesNotExist:
-        return None, 0, 0, 0, False
+    user_root = os.path.join(settings.MEDIA_ROOT, f"user_{user.id}")
+    total_used = 0
 
-    files = File.objects.filter(user=user)
-    storage_used = round(sum(f.size for f in files), 2)  # MB or GB based on your units
-    storage_total = sub.storage_limit
-    storage_percent = int((storage_used / storage_total) * 100) if storage_total > 0 else 0
-    storage_full = storage_used >= storage_total
+    if os.path.exists(user_root):
+        for root, dirs, files in os.walk(user_root):
+            for f in files:
+                fp = os.path.join(root, f)
+                total_used += os.path.getsize(fp)
 
-    return sub, storage_used, storage_total, storage_percent, storage_full
+    used_gb = round(total_used / (1024 * 1024), 2)
+    sub = Subscription.objects.get(user=user)
+    total = sub.storage_limit
+    percent = int((used_gb / total) * 100) if total else 0
+    full = used_gb >= total
+
+    return sub, used_gb, total, percent, full
 
 
 # ---------------------------------------------------------
@@ -215,7 +220,7 @@ def calculate_storage(user):
 def upload(request):
     user = request.user
 
-    # subscription check
+    # ---------------- SUBSCRIPTION CHECK ----------------
     try:
         sub = Subscription.objects.get(user=user)
     except Subscription.DoesNotExist:
@@ -224,38 +229,55 @@ def upload(request):
     if not sub.is_active():
         return redirect("subscription_expired")
 
-    # ------------- File Upload POST --------------
+    # ---------------- FILE UPLOAD ----------------
     if request.method == "POST":
         file = request.FILES.get("file")
-        folder_id = request.POST.get("folder")
+        folder_name = request.POST.get("folder")  # string folder name
 
         if not file:
             return JsonResponse({"error": "No file uploaded"}, status=400)
 
-        # check storage limit
+        # File size
         size_mb = round(file.size / (1024 * 1024), 2)
+
+        # Storage check
         _, used, total, _, _ = calculate_storage(user)
-
         if used + size_mb > total:
-            return JsonResponse({"error": "Storage limit reached! Upgrade your plan."}, status=403)
+            return JsonResponse(
+                {"error": "Storage limit reached! Upgrade your plan."},
+                status=403
+            )
 
-        # folder
-        folder = Folder.objects.get(id=folder_id, user=user) if folder_id else None
+        # ---------------- FILE SYSTEM PATH ----------------
+        user_root = os.path.join(settings.MEDIA_ROOT, f"user_{user.id}")
+        os.makedirs(user_root, exist_ok=True)
 
-        File.objects.create(
-            user=user,
-            file=file,
-            name=file.name,
-            size=size_mb,
-            folder=folder
-        )
+        if folder_name:
+            upload_dir = os.path.join(user_root, folder_name)
+        else:
+            upload_dir = os.path.join(user_root, "uploads")
+
+        os.makedirs(upload_dir, exist_ok=True)
+
+        # Save file manually
+        file_path = os.path.join(upload_dir, file.name)
+        with open(file_path, "wb+") as destination:
+            for chunk in file.chunks():
+                destination.write(chunk)
 
         return JsonResponse({"success": True})
 
     # ---------------- STORAGE INFO ----------------
     sub, storage_used, storage_total, storage_percent, storage_full = calculate_storage(user)
 
-    folders = Folder.objects.filter(user=user)
+    # Folder list from filesystem
+    user_root = os.path.join(settings.MEDIA_ROOT, f"user_{user.id}")
+    folders = []
+    if os.path.exists(user_root):
+        folders = [
+            d for d in os.listdir(user_root)
+            if os.path.isdir(os.path.join(user_root, d))
+        ]
 
     context = {
         "folders": folders,
