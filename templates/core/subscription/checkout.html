@@ -36,7 +36,7 @@
         </div>
 
         <!-- Payment Button -->
-        <button id="payBtn" class="pay-btn">
+        <button id="payBtn" class="pay-btn" onclick="payNow()">
             Proceed to Pay ₹{{ amount|floatformat:2 }}
         </button>
 
@@ -55,50 +55,60 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-// Start Payment
-document.getElementById("payBtn").onclick = function () {
-
-    fetch("/payment/create-order/", {
+function payNow() {
+    fetch("{% url 'create_order' %}", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `plan={{ plan }}&amount={{ amount }}`
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+            plan: "{{ plan }}",
+            amount: "{{ amount }}"
+        })
     })
     .then(res => res.json())
     .then(data => {
 
-        var options = {
-            "key": "{{ razorpay_key }}",
-            "amount": data.order.amount,
-            "currency": "INR",
-            "order_id": data.order.id,
+        const options = {
+            key: "{{ razorpay_key }}",
+            amount: data.order.amount,
+            currency: "INR",
+            name: "CloudSync",
+            description: "{{ plan|upper }} Plan",
+            order_id: data.order.id,
 
-            "name": "CloudSync",
-            "description": "{{ plan_data.name }} Subscription",
-
-            "theme": { "color": "#6a00ff" },
-
-            "handler": function (response) {
-                var form = document.createElement("form");
-                form.method = "POST";
-                form.action = "/payment/verify/";
-
-                form.innerHTML = `
-                    <input name="plan" value="{{ plan }}">
-                    <input name="amount" value="{{ amount }}">
-                    <input name="razorpay_payment_id" value="${response.razorpay_payment_id}">
-                    <input name="razorpay_order_id" value="${response.razorpay_order_id}">
-                    <input name="razorpay_signature" value="${response.razorpay_signature}">
-                `;
-                document.body.appendChild(form);
-                form.submit();
+            handler: function (response) {
+                fetch("{% url 'payment_verify' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: new URLSearchParams({
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                        plan: "{{ plan }}"
+                    })
+                })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success) {
+                        window.location.href = "/dashboard/";
+                    } else {
+                        alert("Payment verification failed");
+                    }
+                });
             }
         };
 
-        var rzp = new Razorpay(options);
+        const rzp = new Razorpay(options);
         rzp.open();
     });
 }
 </script>
+
 
 </body>
 </html>

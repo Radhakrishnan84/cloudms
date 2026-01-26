@@ -584,72 +584,46 @@ def create_order(request):
     return JsonResponse({"order": order})
 
 
-
+@login_required
 @csrf_exempt
 def payment_verify(request):
-    if request.method == "POST":
-        data = request.POST
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=400)
 
-        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    client = razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    )
 
-        try:
-            client.utility.verify_payment_signature({
-                "razorpay_order_id": data["razorpay_order_id"],
-                "razorpay_payment_id": data["razorpay_payment_id"],
-                "razorpay_signature": data["razorpay_signature"]
-            })
-        except:
-            return render(request, "core/payment_failed.html")
+    data = request.POST
 
-        # Retrieve selected plan
-        plan = request.POST.get("plan")
-
-        PLAN_DATA = {
-            "pro": {"name": "PRO", "storage": 50, "duration": 30},
-            "premium": {"name": "PREMIUM", "storage": 200, "duration": 30},
-        }
-
-        plan_info = PLAN_DATA[plan]
-
-        # Activate subscription
-        sub, created = Subscription.objects.get_or_create(user=request.user)
-        sub.plan = plan_info["name"]
-        sub.storage_limit = plan_info["storage"]
-        sub.start_date = timezone.now()
-        sub.end_date = timezone.now() + timezone.timedelta(days=plan_info["duration"])
-        sub.save()
-
-        # Generate Invoice PDF
-        from reportlab.pdfgen import canvas
-        from django.http import HttpResponse
-        import io
-
-        buffer = io.BytesIO()
-        p = canvas.Canvas(buffer)
-        p.drawString(100, 800, f"Invoice for Order: {data['razorpay_order_id']}")
-        p.drawString(100, 780, f"User: {request.user.email}")
-        p.drawString(100, 760, f"Plan: {sub.plan}")
-        p.drawString(100, 740, f"Amount Paid: Rs {request.POST.get('amount')}")
-        p.drawString(100, 720, "Thank you for your purchase!")
-        p.showPage()
-        p.save()
-
-        buffer.seek(0)
-
-        # Email Receipt
-        email = EmailMessage(
-            subject="Payment Receipt - CloudSync",
-            body="Thank you for your payment. Please find your invoice attached.",
-            to=[request.user.email]
-        )
-        email.attach("invoice.pdf", buffer.getvalue(), "application/pdf")
-        email.send()
-
-        return render(request, "core/payment_success.html", {
-            "order_id": data["razorpay_order_id"],
-            "payment_id": data["razorpay_payment_id"],
-            "plan": plan,
+    try:
+        client.utility.verify_payment_signature({
+            "razorpay_order_id": data.get("razorpay_order_id"),
+            "razorpay_payment_id": data.get("razorpay_payment_id"),
+            "razorpay_signature": data.get("razorpay_signature"),
         })
+    except razorpay.errors.SignatureVerificationError:
+        return JsonResponse({"error": "Payment verification failed"}, status=400)
+
+    # ✅ ACTIVATE SUBSCRIPTION AFTER SUCCESS
+    plan = data.get("plan")
+
+    PLAN_DATA = {
+        "pro": {"name": "PRO", "storage": 50, "duration": 30},
+        "premium": {"name": "PREMIUM", "storage": 200, "duration": 30},
+    }
+
+    plan_info = PLAN_DATA.get(plan)
+
+    sub, _ = Subscription.objects.get_or_create(user=request.user)
+    sub.plan = plan_info["name"]
+    sub.storage_limit = plan_info["storage"]
+    sub.start_date = timezone.now()
+    sub.end_date = timezone.now() + timezone.timedelta(days=plan_info["duration"])
+    sub.save()
+
+    return JsonResponse({"success": True})
+
     
 def download_invoice(request, order_id):
     buffer = io.BytesIO()
