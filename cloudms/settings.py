@@ -78,10 +78,15 @@ WSGI_APPLICATION = 'cloudms.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'mysql.connector.django',
+        'NAME': 'cloudms',          
+        'USER': 'root',             
+        'PASSWORD': 'Rk19@10#',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
+
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -97,6 +102,7 @@ CSRF_TRUSTED_ORIGINS = [
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
