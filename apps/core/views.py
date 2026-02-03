@@ -16,6 +16,7 @@ from datetime import timedelta
 from apps.core.utils.payments import razorpay_client
 from django.http import JsonResponse
 from .models import UserFile, Subscription, Folder, SharedFile, Profile, ActivityLog, File
+from cloudinary.uploader import upload as cloudinary_upload
 from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -194,27 +195,36 @@ def dashboard_view(request):
 # Storage Calculation (used by all pages)
 # ---------------------------------------------------------
 def calculate_storage(user):
-    try:
-        sub = Subscription.objects.get(user=user)
-    except Subscription.DoesNotExist:
+    sub = Subscription.objects.filter(user=user).first()
+    if not sub:
         return None, 0, 0, 0, False
 
     files = UserFile.objects.filter(user=user)
-    storage_used = round(sum(f.size for f in files), 2)  # MB or GB based on your units
+    storage_used = round(sum(f.size for f in files), 2)
     storage_total = sub.storage_limit
-    storage_percent = int((storage_used / storage_total) * 100) if storage_total > 0 else 0
+    storage_percent = int((storage_used / storage_total) * 100) if storage_total else 0
     storage_full = storage_used >= storage_total
 
     return sub, storage_used, storage_total, storage_percent, storage_full
 
 
-# ---------------------------------------------------------
-# UPLOAD PAGE
-# ---------------------------------------------------------
+# ---------------- STORAGE STATUS API ----------------
+@login_required
+def storage_status(request):
+    _, used, total, percent, _ = calculate_storage(request.user)
+    return JsonResponse({
+        "used": used,
+        "total": total,
+        "percent": percent
+    })
+
+
+# ---------------- UPLOAD VIEW ----------------
 @login_required
 def upload(request):
     user = request.user
 
+    # Subscription check
     try:
         sub = Subscription.objects.get(user=user)
     except Subscription.DoesNotExist:
@@ -223,6 +233,7 @@ def upload(request):
     if not sub.is_active():
         return redirect("subscription_expired")
 
+    # ----------- FILE UPLOAD (POST) -----------
     if request.method == "POST":
         file = request.FILES.get("file")
         folder_id = request.POST.get("folder")
@@ -234,44 +245,51 @@ def upload(request):
         _, used, total, _, _ = calculate_storage(user)
 
         if used + size_mb > total:
-            return JsonResponse({"error": "Storage limit reached! Upgrade your plan."}, status=403)
+            return JsonResponse({"error": "Storage limit reached"}, status=403)
 
-        # 🔹 FILE CATEGORY DETECTION
+        # Detect category
         ext = file.name.split(".")[-1].lower()
         if ext in ["jpg", "jpeg", "png", "gif", "webp"]:
             category = "image"
-        elif ext in ["mp4", "avi", "mov"]:
+        elif ext in ["mp4", "avi", "mov", "mkv"]:
             category = "video"
         elif ext in ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"]:
             category = "document"
         else:
             category = "other"
 
-        folder = Folder.objects.get(id=folder_id, user=user) if folder_id else None
+        folder = Folder.objects.filter(id=folder_id, user=user).first()
+
+        # Upload to Cloudinary
+        result = cloudinary_upload(
+            file,
+            folder=f"cloudsync/{user.id}",
+            resource_type="auto"
+        )
 
         UserFile.objects.create(
             user=user,
-            file=file,
             name=file.name,
+            file=result["secure_url"],
             size=size_mb,
-            category=category,   # ✅ REQUIRED
-            folder=folder if hasattr(UserFile, "folder") else None
+            category=category,
+            folder=folder
         )
 
         return JsonResponse({"success": True})
 
-    sub, storage_used, storage_total, storage_percent, storage_full = calculate_storage(user)
+    # ----------- PAGE LOAD (GET) -----------
+    sub, used, total, percent, full = calculate_storage(user)
     folders = Folder.objects.filter(user=user)
 
     return render(request, "core/dashboard/upload.html", {
         "folders": folders,
         "sub": sub,
-        "storage_used": storage_used,
-        "storage_total": storage_total,
-        "storage_percent": storage_percent,
-        "storage_full": storage_full,
+        "storage_used": used,
+        "storage_total": total,
+        "storage_percent": percent,
+        "storage_full": full
     })
-
 
 
 # ---------------------------------------------------------

@@ -2,6 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
+from django.conf import settings
+from cloudinary.models import CloudinaryField
+
+
+User = settings.AUTH_USER_MODEL
+
 
 class PricingPlan:
     PLANS = {
@@ -21,6 +27,14 @@ class PricingPlan:
 
 #dashboard
 
+class Folder(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
 class UserFile(models.Model):
     CATEGORY_CHOICES = [
         ("document", "Document"),
@@ -30,15 +44,16 @@ class UserFile(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    folder = models.ForeignKey(Folder, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=255)
-    file = models.FileField(upload_to="uploads/")
-    size = models.FloatField()  # stored in MB
+    file = models.URLField()  # ✅ Cloudinary URL
+    size = models.FloatField()  # MB
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
-    
+
 
 class Subscription(models.Model):
 
@@ -100,14 +115,6 @@ class File(models.Model):
 
     def is_expired(self):
         return self.expires_in_days() <= 0
-
-class Folder(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
     
 class SharedFile(models.Model):
     file = models.ForeignKey(File, on_delete=models.CASCADE)
