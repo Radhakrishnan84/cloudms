@@ -1,11 +1,14 @@
-Django
+Django>=4.2,<5.1
 djangorestframework
 Pillow
 python-dotenv
+django-allauth>=0.61.0
 cloudinary
 django-cloudinary-storage
-psycopg2
+psycopg2-binary
 reportlab
 razorpay
 matplotlib
 gunicorn
+dj-database-url
+whitenoise

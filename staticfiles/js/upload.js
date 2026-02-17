@@ -2,93 +2,76 @@ const fileInput = document.getElementById("fileInput");
 const uploadList = document.getElementById("uploadList");
 const folderSelect = document.getElementById("folderSelect");
 
-// Handle browse button upload
-fileInput.addEventListener("change", function () {
-    uploadFiles(this.files);
+fileInput.addEventListener("change", () => {
+    [...fileInput.files].forEach(file => startUpload(file));
 });
 
-// Handle drag-and-drop
-const uploadBox = document.querySelector(".upload-box");
+function startUpload(file) {
+    const row = document.createElement("div");
+    row.className = "upload-row";
 
-uploadBox.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    uploadBox.classList.add("dragover");
-});
+    row.innerHTML = `
+        <div>${file.name}</div>
+        <progress max="100" value="0"></progress>
+        <span class="status">Uploading...</span>
+        <button class="cancel">✖</button>
+    `;
 
-uploadBox.addEventListener("dragleave", () => {
-    uploadBox.classList.remove("dragover");
-});
+    uploadList.appendChild(row);
 
-uploadBox.addEventListener("drop", (e) => {
-    e.preventDefault();
-    uploadBox.classList.remove("dragover");
-    uploadFiles(e.dataTransfer.files);
-});
-
-
-
-// ---------------------------
-// Upload Function (AJAX)
-// ---------------------------
-function uploadFiles(files) {
-    [...files].forEach(file => uploadSingleFile(file));
-}
-
-function uploadSingleFile(file) {
-    const folderId = folderSelect.value;
-
-    // Create UI card
-    const uploadId = "up_" + Math.random().toString(36).substr(2, 9);
-
-    uploadList.insertAdjacentHTML("beforeend", `
-        <div class="upload-item" id="${uploadId}">
-            <div>
-                <strong>${file.name}</strong>
-                <div class="progress-bar">
-                    <div class="progress"></div>
-                </div>
-            </div>
-            <span class="status">0%</span>
-        </div>
-    `);
+    const progressBar = row.querySelector("progress");
+    const statusText = row.querySelector(".status");
+    const cancelBtn = row.querySelector(".cancel");
 
     const xhr = new XMLHttpRequest();
     const formData = new FormData();
 
     formData.append("file", file);
-    formData.append("folder", folderId);
-    formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+    formData.append("folder", folderSelect.value);
 
-    xhr.upload.addEventListener("progress", function (e) {
+    xhr.open("POST", "/upload/", true);
+
+    // CSRF
+    xhr.setRequestHeader(
+        "X-CSRFToken",
+        getCookie("csrftoken")
+    );
+
+    xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
-            const percent = Math.round((e.loaded / e.total) * 100);
-            const card = document.getElementById(uploadId);
-
-            card.querySelector(".progress").style.width = percent + "%";
-            card.querySelector(".status").innerText = percent + "%";
-
-            if (percent === 100) {
-                card.querySelector(".progress").style.background = "#28c76f"; // green on complete
-            }
-        }
-    });
-
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-            const card = document.getElementById(uploadId);
-
-            if (xhr.status === 200) {
-                card.querySelector(".status").innerText = "Uploaded";
-            } else {
-                card.querySelector(".progress").style.background = "red";
-                card.querySelector(".status").innerText = "Failed";
-
-                const response = JSON.parse(xhr.responseText);
-                alert(response.error || "Upload failed");
-            }
+            progressBar.value = (e.loaded / e.total) * 100;
         }
     };
 
-    xhr.open("POST", "{% url 'upload' %}");
+    xhr.onload = () => {
+        if (xhr.status === 200) {
+            statusText.textContent = "Uploaded ✅";
+        } else {
+            statusText.textContent = "Failed ❌";
+        }
+    };
+
+    xhr.onerror = () => {
+        statusText.textContent = "Failed ❌";
+    };
+
+    cancelBtn.onclick = () => {
+        xhr.abort();
+        statusText.textContent = "Cancelled";
+    };
+
     xhr.send(formData);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        document.cookie.split(";").forEach(cookie => {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        });
+    }
+    return cookieValue;
 }
