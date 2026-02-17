@@ -37,14 +37,26 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # REQUIRED
+    'django.contrib.sites',
+
+    # ALLAUTH
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+
     # Local apps
     'apps.core',
     'apps.adminpanel',
 
-    # Third-party apps
+    # Third party
     'cloudinary',
     'cloudinary_storage',
 ]
+
+
+SITE_ID = 1
 
 
 # ==================================================
@@ -56,6 +68,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -73,6 +86,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -102,15 +116,42 @@ DATABASES = {
 # ==================================================
 # AUTHENTICATION
 # ==================================================
-AUTHENTICATION_BACKENDS = [
+
+AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-]
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 
-LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "/dashboard/"
-LOGOUT_REDIRECT_URL = "/"
-LOGIN_REDIRECT_URL = "/accounts/post-login/"
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/login/'
+LOGIN_URL = '/login'
 
+
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+
+SOCIALACCOUNT_ADAPTER = "apps.core.adapters.CustomSocialAccountAdapter"
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': '236063248965-2i2771hi0ugsrbqbd2aeuml0ckpd4r5c.apps.googleusercontent.com',
+            'secret': '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',
+            'key': '',
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    },
+}
 
 
 # ==================================================
@@ -171,7 +212,7 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "radhakrishnanjb053@gmail.com"
-EMAIL_HOST_PASSWORD = "user@1234"
+EMAIL_HOST_PASSWORD = "srreirxaitpckuxg"
 DEFAULT_FROM_EMAIL = "CloudSync <radhakrishnanjb053@gmail.com>"
 
 

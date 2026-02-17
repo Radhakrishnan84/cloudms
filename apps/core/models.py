@@ -44,15 +44,24 @@ class UserFile(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    folder = models.ForeignKey(Folder, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=255)
-    file = models.URLField()  # ✅ Cloudinary URL
+
+    # URL for local / cloud storage
+    file = models.URLField(max_length=1000)
+
     size = models.FloatField()  # MB
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+
+    folder = models.ForeignKey(Folder, null=True, blank=True, on_delete=models.SET_NULL)
+
+    is_deleted = models.BooleanField(default=False)   # 🔥 TRASH
+    deleted_at = models.DateTimeField(null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
+
+
 
 
 class Subscription(models.Model):
@@ -107,6 +116,19 @@ class File(models.Model):
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
+    # 🔹 SAFE DISPLAY HELPERS (NEW)
+    @property
+    def file_type(self):
+        return self.category.upper()
+
+    @property
+    def owner_name(self):
+        return self.user.username
+
+    @property
+    def file_size_mb(self):
+        return f"{self.size:.2f} MB"
+
     def expires_in_days(self):
         if not self.deleted_at:
             return None
@@ -114,13 +136,20 @@ class File(models.Model):
         return (expire_date - timezone.now()).days
 
     def is_expired(self):
-        return self.expires_in_days() <= 0
+        days = self.expires_in_days()
+        return days is not None and days <= 0
     
 class SharedFile(models.Model):
-    file = models.ForeignKey(File, on_delete=models.CASCADE)
-    owner = models.ForeignKey(User, related_name="shared_by_you", on_delete=models.CASCADE)
-    shared_with = models.ForeignKey(User, related_name="shared_with_you", on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="shared_owner")
+    shared_with = models.ForeignKey(User, on_delete=models.CASCADE, related_name="shared_user")
+    file = models.ForeignKey(UserFile, on_delete=models.CASCADE)
+
     shared_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.file.name} shared with {self.shared_with.email}"
+
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -180,7 +209,6 @@ class Server(models.Model):
 
     def __str__(self):
         return self.name
-
 
 
 

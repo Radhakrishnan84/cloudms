@@ -1,0 +1,71 @@
+{% extends "base/dashboard_base.html" %}
+{% load static %}
+
+{% block title %}Invoice – CloudSync{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/invoice.css' %}">
+
+<div class="invoice-wrapper">
+
+    <div class="invoice-card">
+
+        <!-- HEADER -->
+        <div class="invoice-header">
+            <h2>CloudSync Invoice</h2>
+            <span class="paid-badge">PAID</span>
+        </div>
+
+        <!-- META -->
+        <div class="invoice-meta">
+            <p><strong>Invoice ID:</strong> {{ order_id }}</p>
+            <p><strong>Payment ID:</strong> {{ payment_id }}</p>
+            <p><strong>Date:</strong> {{ now|date:"d M Y" }}</p>
+        </div>
+
+        <!-- USER -->
+        <div class="invoice-user">
+            <h4>Billed To</h4>
+            <p>{{ request.user.get_full_name|default:request.user.username }}</p>
+            <p>{{ request.user.email }}</p>
+        </div>
+
+        <!-- TABLE -->
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Plan</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>Cloud Storage Subscription</td>
+                    <td>{{ plan|title }}</td>
+                    <td>₹ {{ amount }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- TOTAL -->
+        <div class="invoice-total">
+            <span>Total Paid</span>
+            <strong>₹ {{ amount }}</strong>
+        </div>
+
+        <!-- ACTION -->
+        <div class="invoice-actions">
+            <a href="{% url 'download_invoice' order_id %}" class="btn-primary">
+                Download PDF Invoice
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+

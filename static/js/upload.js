@@ -3,83 +3,75 @@ const uploadList = document.getElementById("uploadList");
 const folderSelect = document.getElementById("folderSelect");
 
 fileInput.addEventListener("change", () => {
-    [...fileInput.files].forEach(uploadFile);
+    [...fileInput.files].forEach(file => startUpload(file));
 });
 
-function uploadFile(file) {
+function startUpload(file) {
     const row = document.createElement("div");
     row.className = "upload-row";
 
     row.innerHTML = `
         <div>${file.name}</div>
-        <div class="progress-bar"><div class="progress-fill"></div></div>
-        <div class="status">Uploading...</div>
-        <button class="cancel-btn">✖</button>
+        <progress max="100" value="0"></progress>
+        <span class="status">Uploading...</span>
+        <button class="cancel">✖</button>
     `;
 
     uploadList.appendChild(row);
 
-    const progressFill = row.querySelector(".progress-fill");
+    const progressBar = row.querySelector("progress");
     const statusText = row.querySelector(".status");
-    const cancelBtn = row.querySelector(".cancel-btn");
+    const cancelBtn = row.querySelector(".cancel");
 
     const xhr = new XMLHttpRequest();
     const formData = new FormData();
+
     formData.append("file", file);
     formData.append("folder", folderSelect.value);
 
+    xhr.open("POST", "/upload/", true);
+
+    // CSRF
+    xhr.setRequestHeader(
+        "X-CSRFToken",
+        getCookie("csrftoken")
+    );
+
     xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
-            progressFill.style.width = (e.loaded / e.total) * 100 + "%";
+            progressBar.value = (e.loaded / e.total) * 100;
         }
     };
 
     xhr.onload = () => {
         if (xhr.status === 200) {
-            statusText.innerText = "Uploaded ✔";
-            updateStorage();
+            statusText.textContent = "Uploaded ✅";
         } else {
-            showRetry();
+            statusText.textContent = "Failed ❌";
         }
     };
 
-    xhr.onerror = showRetry;
-
-    function showRetry() {
-        statusText.innerText = "Failed ❌";
-        const retry = document.createElement("button");
-        retry.innerText = "Retry";
-        retry.className = "retry-btn";
-        retry.onclick = () => {
-            row.remove();
-            uploadFile(file);
-        };
-        row.appendChild(retry);
-    }
+    xhr.onerror = () => {
+        statusText.textContent = "Failed ❌";
+    };
 
     cancelBtn.onclick = () => {
         xhr.abort();
-        statusText.innerText = "Cancelled";
-        progressFill.style.background = "gray";
+        statusText.textContent = "Cancelled";
     };
 
-    xhr.open("POST", "/upload/");
-    xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
     xhr.send(formData);
 }
 
-function updateStorage() {
-    fetch("/storage-status/")
-        .then(res => res.json())
-        .then(data => {
-            document.querySelector(".fill").style.width = data.percent + "%";
-            document.querySelector(".small").innerText =
-                `${data.used} GB of ${data.total} GB used`;
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        document.cookie.split(";").forEach(cookie => {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            }
         });
-}
-
-function getCSRFToken() {
-    return document.cookie.split("; ")
-        .find(row => row.startsWith("csrftoken"))
-        ?.split("=")[1];
+    }
+    return cookieValue;
 }

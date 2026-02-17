@@ -351,25 +351,28 @@ def admin_subscriptions(request):
     subs = Subscription.objects.select_related("user")
     return render(request, "adminpanel/subscriptions.html", {"subs": subs})
 
-@admin_only
-def admin_files(request):
-    files = File.objects.all()
+# apps/adminpanel/views.py
 
-    formatted_files = []
-    for f in files:
-        formatted_files.append({
-            "name": f.name,
-            "type": f.file_type,
-            "size": f.size_mb,
-            "owner_name": f.user.get_full_name() or f.user.email,
-            "created_date": f.created_at.strftime("%B %d"),
-            "created_ago": f.created_at.strftime("%I:%M %p"),
-            "items_count": f.item_count,
-            "category": f.category,
-            "icon_url": f.icon_url,
-        })
+from django.contrib.auth.decorators import login_required, user_passes_test
+from apps.core.models import File
 
-    return render(request, "adminpanel/files.html", {"files": formatted_files})
+def is_admin(user):
+    return user.is_staff
+
+@login_required
+@user_passes_test(is_admin)
+def admin_files_view(request):
+    files = (
+        File.objects
+        .select_related("user")
+        .filter(is_deleted=False)
+        .order_by("-uploaded_at")
+    )
+
+    return render(request, "adminpanel/files.html", {
+        "files": files
+    })
+
 
 @admin_only
 def admin_add_file(request):

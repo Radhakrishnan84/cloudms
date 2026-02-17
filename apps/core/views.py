@@ -6,12 +6,16 @@ from .models import PricingPlan
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponseForbidden
+from django.http import HttpResponseRedirect
+from django.http import Http404
 from .models import File
 from apps.core.utils.helpers import detect_category, file_size_in_mb
 from django.db import IntegrityError
 from .models import Subscription, Plan
 from django.utils import timezone
+from django.http import HttpResponse
+from datetime import datetime
 from datetime import timedelta
 from apps.core.utils.payments import razorpay_client
 from django.http import JsonResponse
@@ -19,12 +23,13 @@ from .models import UserFile, Subscription, Folder, SharedFile, Profile, Activit
 from cloudinary.uploader import upload as cloudinary_upload
 from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Sum
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from reportlab.pdfgen import canvas
 import io
+import os
 from django.http import FileResponse
 from django.contrib.auth import logout
 
@@ -44,34 +49,39 @@ def handle_login(request):
     email = request.POST.get("email")
     password = request.POST.get("password")
     remember = request.POST.get("rememberMe")
+    next_url = request.POST.get("next")
 
     if not email or not password:
         messages.error(request, "Email and password are required.")
-        return redirect("login" if login_type == "user" else "admin_login")
+        return redirect("login")
 
     email = email.strip().lower()
+
+    # 🔐 Authenticate
     user = authenticate(request, username=email, password=password)
 
     if user is None:
         messages.error(request, "Invalid email or password.")
-        return redirect("login" if login_type == "user" else "admin_login")
+        return redirect("login")
 
-    # Admin validation
+    # 🚫 Admin access check
     if login_type == "admin" and not user.is_staff:
         messages.error(request, "Admin access denied.")
-        return redirect("admin_login")
+        return redirect("login")
 
+    # ✅ Login
     login(request, user)
 
-    # Remember me feature
+    # ⏳ Remember me
     if remember:
-        request.session.set_expiry(1209600)
+        request.session.set_expiry(60 * 60 * 24 * 14)  # 14 days
     else:
-        request.session.set_expiry(0)
+        request.session.set_expiry(0)  # browser close
 
-    # Redirect based on login type
-    if login_type == "admin":
-        return redirect("admin_dashboard")
+    # 🔁 Redirect
+    if next_url:
+        return redirect(next_url)
+
     return redirect("dashboard")
 
 
@@ -141,53 +151,67 @@ def payment_success(request):
     activate_subscription(request.user, plan_name)
     return redirect("dashboard")
 
-# dashboard
+
+
 
 @login_required
 def dashboard_view(request):
     user = request.user
 
-    # -----------------------------
-    # 1. Subscription (optional)
-    # -----------------------------
+    # ---------------- SUBSCRIPTION CHECK ----------------
     try:
         sub = Subscription.objects.get(user=user)
     except Subscription.DoesNotExist:
-        sub = None  # dashboard still loads
+        return redirect("no_subscription")
 
-    # -----------------------------
-    # 2. Files & Storage Calculation
-    # -----------------------------
-    files = File.objects.filter(user=user)
-    storage_used = round(sum(f.size for f in files), 2)
+    # ---------------- CATEGORY STATS ----------------
+    def category_stats(cat):
+        qs = UserFile.objects.filter(user=user, category=cat)
+        count = qs.count()
+        size = qs.aggregate(total=Sum("size"))["total"] or 0
+        return count, round(size / 1024, 2)  # MB → GB
 
-    # If subscription exists → use its storage limit
-    if sub:
-        storage_total = sub.storage_limit
-    else:
-        storage_total = 0  # show 0 GB if no plan
+    doc_count, doc_size = category_stats("document")
+    img_count, img_size = category_stats("image")
+    vid_count, vid_size = category_stats("video")
+    oth_count, oth_size = category_stats("other")
 
-    # Prevent zero-division
-    if storage_total > 0:
-        storage_percent = int((storage_used / storage_total) * 100)
-    else:
-        storage_percent = 0
+    # ---------------- RECENT FILES ----------------
+    recent_files = (
+        UserFile.objects
+        .filter(user=user)
+        .order_by("-uploaded_at")[:6]
+    )
 
-    storage_full = sub and storage_used >= storage_total
+    # ---------------- STORAGE CARD ----------------
+    sub, storage_used, storage_total, storage_percent, storage_full = calculate_storage(user)
 
-    # -----------------------------
-    # 3. Prepare dashboard data
-    # -----------------------------
     context = {
+        # category cards
+        "doc_count": doc_count,
+        "doc_size": doc_size,
+        "img_count": img_count,
+        "img_size": img_size,
+        "vid_count": vid_count,
+        "vid_size": vid_size,
+        "oth_count": oth_count,
+        "oth_size": oth_size,
+
+        # recent files
+        "recent_files": recent_files,
+
+        # storage card
         "sub": sub,
         "storage_used": storage_used,
         "storage_total": storage_total,
         "storage_percent": storage_percent,
         "storage_full": storage_full,
-        "recent_files": files.order_by("-uploaded_at")[:6],
     }
 
     return render(request, "core/dashboard/dashboard.html", context)
+
+
+    
 
 
 
@@ -224,7 +248,6 @@ def storage_status(request):
 def upload(request):
     user = request.user
 
-    # Subscription check
     try:
         sub = Subscription.objects.get(user=user)
     except Subscription.DoesNotExist:
@@ -233,44 +256,49 @@ def upload(request):
     if not sub.is_active():
         return redirect("subscription_expired")
 
-    # ----------- FILE UPLOAD (POST) -----------
     if request.method == "POST":
-        file = request.FILES.get("file")
+        uploaded_file = request.FILES.get("file")
         folder_id = request.POST.get("folder")
 
-        if not file:
+        if not uploaded_file:
             return JsonResponse({"error": "No file uploaded"}, status=400)
 
-        size_mb = round(file.size / (1024 * 1024), 2)
+        size_mb = round(uploaded_file.size / (1024 * 1024), 2)
         _, used, total, _, _ = calculate_storage(user)
 
         if used + size_mb > total:
             return JsonResponse({"error": "Storage limit reached"}, status=403)
 
-        # Detect category
-        ext = file.name.split(".")[-1].lower()
+        # -------- CATEGORY AUTO-DETECTION --------
+        ext = uploaded_file.name.split(".")[-1].lower()
+
         if ext in ["jpg", "jpeg", "png", "gif", "webp"]:
             category = "image"
+            system_folder = "images"
         elif ext in ["mp4", "avi", "mov", "mkv"]:
             category = "video"
-        elif ext in ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"]:
-            category = "document"
+            system_folder = "videos"
         else:
-            category = "other"
+            category = "document"
+            system_folder = "documents"
 
-        folder = Folder.objects.filter(id=folder_id, user=user).first()
+        # -------- OPTIONAL USER FOLDER (SAFE) --------
+        folder = None
+        if folder_id:
+            folder = Folder.objects.filter(
+                id=int(folder_id),
+                user=user
+            ).first()
 
-        # Upload to Cloudinary
-        result = cloudinary_upload(
-            file,
-            folder=f"cloudsync/{user.id}",
-            resource_type="auto"
+        # -------- SAFE FILE PATH --------
+        uploaded_file.name = (
+            f"cloudsync/{user.id}/{system_folder}/{uploaded_file.name}"
         )
 
         UserFile.objects.create(
             user=user,
-            name=file.name,
-            file=result["secure_url"],
+            name=uploaded_file.name.split("/")[-1],
+            file=uploaded_file,
             size=size_mb,
             category=category,
             folder=folder
@@ -278,7 +306,7 @@ def upload(request):
 
         return JsonResponse({"success": True})
 
-    # ----------- PAGE LOAD (GET) -----------
+    # GET
     sub, used, total, percent, full = calculate_storage(user)
     folders = Folder.objects.filter(user=user)
 
@@ -288,8 +316,9 @@ def upload(request):
         "storage_used": used,
         "storage_total": total,
         "storage_percent": percent,
-        "storage_full": full
+        "storage_full": full,
     })
+
 
 
 # ---------------------------------------------------------
@@ -304,23 +333,18 @@ def shared_view(request):
 
     total_shared = shared_by_you.count() + shared_with_you.count()
 
-    # include storage card data
-    sub, storage_used, storage_total, storage_percent, storage_full = calculate_storage(user)
+    sub, used, total, percent, full = calculate_storage(user)
 
-    context = {
+    return render(request, "core/dashboard/shared.html", {
         "shared_by_you": shared_by_you,
         "shared_with_you": shared_with_you,
         "total_shared": total_shared,
-
-        # storage card
         "sub": sub,
-        "storage_used": storage_used,
-        "storage_total": storage_total,
-        "storage_percent": storage_percent,
-        "storage_full": storage_full,
-    }
-
-    return render(request, "core/dashboard/shared.html", context)
+        "storage_used": used,
+        "storage_total": total,
+        "storage_percent": percent,
+        "storage_full": full,
+    })
 
 
 # ---------------------------------------------------------
@@ -329,66 +353,154 @@ def shared_view(request):
 @login_required
 def my_files_view(request):
     user = request.user
-    files = File.objects.filter(user=user, is_deleted=False).order_by("-uploaded_at")
 
-    # storage card info
-    sub, storage_used, storage_total, storage_percent, storage_full = calculate_storage(user)
+    # optional filters
+    search = request.GET.get("q", "")
+    folder_id = request.GET.get("folder")
 
-    context = {
+    files = UserFile.objects.filter(
+        user=user,
+        is_deleted=False
+    )
+
+    # 🔍 Search
+    if search:
+        files = files.filter(name__icontains=search)
+
+    # 📂 Folder filter
+    if folder_id:
+        files = files.filter(folder_id=folder_id)
+
+    files = files.order_by("-uploaded_at")
+
+    # 💾 Storage card
+    sub, used, total, percent, full = calculate_storage(user)
+
+    return render(request, "core/dashboard/my_files.html", {
         "files": files,
-
-        # storage card
         "sub": sub,
-        "storage_used": storage_used,
-        "storage_total": storage_total,
-        "storage_percent": storage_percent,
-        "storage_full": storage_full,
-    }
+        "storage_used": used,
+        "storage_total": total,
+        "storage_percent": percent,
+        "storage_full": full,
+        "search_query": search,
+        "active_folder": folder_id,
+    })
 
-    return render(request, "core/dashboard/my_files.html", context)
+
 
 
 # ---------------------------------------------------------
 # TRASH PAGE
 # ---------------------------------------------------------
+
 @login_required
 def trash_view(request):
     user = request.user
+    now = timezone.now()
 
-    trashed_files = File.objects.filter(
+    deleted_files = UserFile.objects.filter(
         user=user,
         is_deleted=True
     ).order_by("-deleted_at")
 
-    total_items = trashed_files.count()
-    total_size = round(sum(f.size for f in trashed_files), 2)
+    enriched_files = []
+    total_size = 0
+    expiring_soon = 0
 
-    expiring_soon = trashed_files.filter(
-        deleted_at__lte=timezone.now() - timedelta(days=18)
-    ).count()
+    for f in deleted_files:
+        deleted_at = f.deleted_at or now
+        days_deleted = (now - deleted_at).days
+        expires_in = max(0, 30 - days_deleted)
 
-    paginator = Paginator(trashed_files, 10)
-    page = request.GET.get("page")
-    files = paginator.get_page(page)
+        if expires_in <= 5:
+            expiring_soon += 1
 
-    # storage card
-    sub, storage_used, storage_total, storage_percent, storage_full = calculate_storage(user)
+        total_size += f.size
 
-    context = {
-        "files": files,
-        "total_items": total_items,
-        "total_size": total_size,
+        enriched_files.append({
+            "id": f.id,
+            "name": f.name,
+            "size": f.size,
+            "type": f.category.title(),
+            "deleted_ago": f"{days_deleted} days",
+            "expires_in": expires_in,
+            "icon": (
+                "files-card.png" if f.category == "document" else
+                "img-card.png" if f.category == "image" else
+                "video-card.png" if f.category == "video" else
+                "others-card.png"
+            )
+        })
+
+    sub, used, total, percent, full = calculate_storage(user)
+
+    return render(request, "core/dashboard/trash.html", {
+        "deleted_files": enriched_files,
+        "total_items": len(enriched_files),
+        "total_size": round(total_size / 1024, 2),
         "expiring_soon": expiring_soon,
-
-        # storage card
+        "page_count": len(enriched_files),
         "sub": sub,
-        "storage_used": storage_used,
-        "storage_total": storage_total,
-        "storage_percent": storage_percent,
-        "storage_full": storage_full,
-    }
+        "storage_used": used,
+        "storage_total": total,
+        "storage_percent": percent,
+        "storage_full": full,
+    })
+@login_required
+def view_file(request, file_id):
+    file = get_object_or_404(UserFile, id=file_id)
 
-    return render(request, "core/dashboard/trash.html", context)
+    allowed = (
+        file.user == request.user or
+        SharedFile.objects.filter(file=file, shared_with=request.user).exists()
+    )
+
+    if not allowed:
+        return HttpResponseForbidden("Access denied")
+
+    return redirect(file.file)
+
+
+@login_required
+def download_file(request, file_id):
+    file = get_object_or_404(UserFile, id=file_id, user=request.user)
+
+    response = redirect(file.file)
+    response["Content-Disposition"] = f'attachment; filename="{file.name}"'
+    return response
+
+@login_required
+def share_file(request, file_id):
+    file = get_object_or_404(UserFile, id=file_id, user=request.user)
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        shared_with = User.objects.filter(username=username).first()
+
+        if not shared_with:
+            messages.error(request, "User not found")
+            return redirect("my_files")
+
+        SharedFile.objects.get_or_create(
+            owner=request.user,
+            shared_with=shared_with,
+            file=file
+        )
+
+        messages.success(request, "File shared successfully")
+        return redirect("shared")
+
+    return render(request, "core/dashboard/shared.html", {"file": file})
+
+
+@login_required
+def trash_file(request, file_id):
+    files = UserFile.objects.get(id=file_id, user=request.user, is_deleted=False)
+    files.is_deleted = True
+    files.deleted_at = timezone.now()
+    files.save(update_fields=["is_deleted", "deleted_at"])
+    return redirect("my_files")
 
 
 # ---------------------------------------------------------
@@ -396,30 +508,36 @@ def trash_view(request):
 # ---------------------------------------------------------
 @login_required
 def restore_file(request, file_id):
-    file = File.objects.get(id=file_id, user=request.user)
+    file = get_object_or_404(UserFile, id=file_id, user=request.user)
     file.is_deleted = False
     file.deleted_at = None
     file.save()
     return redirect("trash")
 
-
-# ---------------------------------------------------------
-# DELETE PERMANENTLY
-# ---------------------------------------------------------
 @login_required
-def delete_permanently(request, file_id):
-    file = File.objects.get(id=file_id, user=request.user)
+def delete_file_permanently(request, file_id):
+    file = get_object_or_404(UserFile, id=file_id, user=request.user)
     file.delete()
     return redirect("trash")
 
+@login_required
+def restore_all_files(request):
+    UserFile.objects.filter(
+        user=request.user,
+        is_deleted=True
+    ).update(is_deleted=False, deleted_at=None)
+    return redirect("trash")
 
-# ---------------------------------------------------------
-# EMPTY TRASH
-# ---------------------------------------------------------
+
 @login_required
 def empty_trash(request):
-    File.objects.filter(user=request.user, is_deleted=True).delete()
+    UserFile.objects.filter(
+        user=request.user,
+        is_deleted=True
+    ).delete()
     return redirect("trash")
+
+
 
 
 @login_required
@@ -584,6 +702,10 @@ def checkout_view(request, plan):
     })
 
 
+razorpay_client = razorpay.Client(
+    auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+)
+
 @login_required
 @csrf_exempt
 def create_order(request):
@@ -591,86 +713,129 @@ def create_order(request):
         return JsonResponse({"error": "Invalid request"}, status=400)
 
     plan = request.POST.get("plan")
-    amount = int(float(request.POST.get("amount")) * 100)
+    amount = int(float(request.POST.get("amount")) * 100)  # paise
 
-    client = razorpay.Client(
-        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
-    )
-
-    order = client.order.create({
+    order = razorpay_client.order.create({
         "amount": amount,
         "currency": "INR",
         "payment_capture": 1
     })
 
-    return JsonResponse({"order": order})
+    return JsonResponse({
+        "order_id": order["id"],
+        "amount": order["amount"],
+        "key": settings.RAZORPAY_KEY_ID
+    })
 
 
+import hmac
+import hashlib
 
 @login_required
 @csrf_exempt
 def verify_payment(request):
     if request.method != "POST":
+        return JsonResponse({"status": "failed"}, status=400)
+
+    payment_id = request.POST.get("razorpay_payment_id")
+    order_id = request.POST.get("razorpay_order_id")
+    signature = request.POST.get("razorpay_signature")
+    plan = request.POST.get("plan")
+
+    body = f"{order_id}|{payment_id}"
+
+    expected_signature = hmac.new(
+        settings.RAZORPAY_KEY_SECRET.encode(),
+        body.encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    if expected_signature != signature:
         return JsonResponse({"status": "failed"})
 
-    data = request.POST
-
-    client = razorpay.Client(
-        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
-    )
-
-    try:
-        client.utility.verify_payment_signature({
-            "razorpay_order_id": data["razorpay_order_id"],
-            "razorpay_payment_id": data["razorpay_payment_id"],
-            "razorpay_signature": data["razorpay_signature"]
-        })
-    except razorpay.errors.SignatureVerificationError:
-        return JsonResponse({"status": "failed"})
-
-    # Activate subscription
-    PLAN_DATA = {
-        "pro": {"name": "PRO", "storage": 50},
-        "premium": {"name": "PREMIUM", "storage": 200},
-    }
-
-    plan = data.get("plan")
-    plan_info = PLAN_DATA.get(plan)
-
+    # ------------------------------
+    # ✅ ACTIVATE SUBSCRIPTION
+    # ------------------------------
     sub, _ = Subscription.objects.get_or_create(user=request.user)
-    sub.plan = plan_info["name"]
-    sub.storage_limit = plan_info["storage"]
-    sub.start_date = timezone.now()
-    sub.end_date = timezone.now() + timezone.timedelta(days=30)
+
+    if plan == "pro":
+        sub.plan = "PRO"
+        sub.storage_limit = 100
+        sub.end_date = timezone.now() + timezone.timedelta(days=30)
+        amount = 499
+    elif plan == "premium":
+        sub.plan = "PREMIUM"
+        sub.storage_limit = 1000
+        sub.end_date = timezone.now() + timezone.timedelta(days=30)
+        amount = 999
+    else:
+        amount = 0
+
     sub.save()
 
-    # Email receipt
-    # send_mail(
-    #     subject="CloudSync Payment Successful",
-    #     message=f"Your {sub.plan} plan is activated.",
-    #     from_email=settings.DEFAULT_FROM_EMAIL,
-    #     recipient_list=[request.user.email],
-    #     fail_silently=True
-    # )
+    # ==============================
+    # 🔥 STORE DATA FOR INVOICE
+    # ==============================
+    request.session["razorpay_order_id"] = order_id
+    request.session["razorpay_payment_id"] = payment_id
+    request.session["plan"] = plan
+    request.session["amount"] = amount
 
     return JsonResponse({"status": "success"})
 
 
-    
+from .utils.invoice import generate_invoice_pdf
+from .utils.email import send_invoice_email
+
+@login_required
 def download_invoice(request, order_id):
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer)
+    payment_id = request.GET.get("payment")
+    plan = request.GET.get("plan")
+    amount = request.GET.get("amount")
 
-    p.drawString(100, 800, f"Invoice for Order: {order_id}")
-    p.drawString(100, 780, f"User: {request.user.email}")
-    p.drawString(100, 760, "Thank you for your purchase!")
+    pdf_buffer = generate_invoice_pdf(
+        user=request.user,
+        order_id=order_id,
+        payment_id=payment_id,
+        plan=plan,
+        amount= amount,
+    )
 
-    p.showPage()
-    p.save()
+    response = HttpResponse(pdf_buffer, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="Invoice_{order_id}.pdf"'
 
-    buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename="invoice.pdf")
+    return response
 
+
+
+@login_required
+def payment_success(request):
+    user = request.user
+
+    order_id = request.session.get("razorpay_order_id")
+    payment_id = request.session.get("razorpay_payment_id")
+    plan = request.session.get("plan")
+    amount = request.session.get("amount")
+
+    # 🔥 Generate Invoice PDF
+    invoice_pdf = generate_invoice_pdf(
+        user=user,
+        order_id=order_id,
+        payment_id=payment_id,
+        plan=plan,
+        amount=amount
+    )
+
+    # 📧 SEND EMAIL WITH PDF
+    send_invoice_email(user, invoice_pdf, order_id)
+
+    return render(request, "core/payment_success.html", {
+        "order_id": order_id,
+        "payment_id": payment_id,
+        "plan": plan,
+        "amount": amount,
+    })
+    
 
 
 def logout_view(request):

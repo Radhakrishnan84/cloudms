@@ -19,7 +19,7 @@ urlpatterns = [
     path("users/export/", views.admin_export_users, name="admin_export_users"),
 
     #Files
-    path("files/", views.admin_files, name="admin_files"),
+    path("files/", views.admin_files_view, name="admin_files"),
     path("files/add/", views.admin_add_file, name="admin_add_file"),
     path("files/export/", views.admin_export_files, name="admin_export_files"),
 

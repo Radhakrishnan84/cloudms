@@ -71,15 +71,16 @@ function payNow() {
     .then(data => {
 
         var options = {
-            key: "{{ razorpay_key }}",
-            amount: data.amount,          // 🔥 USE SERVER AMOUNT
+            key: data.key,
+            amount: data.amount,
             currency: "INR",
             name: "CloudSync",
             description: "Subscription Payment",
-            order_id: data.order_id,      // 🔥 CORRECT ORDER ID
+            order_id: data.order_id,
+
             handler: function (response) {
 
-                fetch("/payment/verify/", {
+                fetch("{% url 'payment_verify' %}", {
                     method: "POST",
                     headers: {
                         "X-CSRFToken": "{{ csrf_token }}",
@@ -95,9 +96,9 @@ function payNow() {
                 .then(res => res.json())
                 .then(result => {
                     if (result.status === "success") {
-                        window.location.href = "/dashboard/";
+                        window.location.href = "/payment/success/";
                     } else {
-                        alert("Payment verification failed");
+                        alert("❌ Payment verification failed");
                     }
                 });
             }
@@ -108,8 +109,6 @@ function payNow() {
     });
 }
 </script>
-
-
 
 
 </body>

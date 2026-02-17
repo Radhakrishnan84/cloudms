@@ -1,4 +1,4 @@
-{% extends "base/user_base.html" %}
+{% extends "base/base.html" %}
 {% load static %}
 
 {% block title %}Payment Successful – CloudSync{% endblock %}
@@ -8,14 +8,15 @@
 <link rel="stylesheet" href="{% static 'css/payment.css' %}">
 
 <div class="success-box">
-    <img src="{% static 'icons/success.svg' %}" class="icon">
+    <img src="{% static 'icons/success.png' %}" class="icon">
     <h2>Payment Successful</h2>
     <p>Your {{ plan.name }} plan is now active.</p>
 
-    <a href="{% url 'download_invoice' order_id=order_id payment_id=rzp_payment_id plan_id=plan.id %}" 
+   <a href="{% url 'download_invoice' order_id %}?payment={{ payment_id }}&plan={{ plan }}&amount={{ amount }}"
    class="go-btn">
-    Download Invoice PDF
+   Download Invoice
 </a>
+
 
 
     <a href="/dashboard/" class="go-btn">Go to Dashboard</a>

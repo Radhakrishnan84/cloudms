@@ -74,8 +74,8 @@
 
             <!-- ACTION BUTTONS -->
             <div class="file-actions">
-                <button class="restore-btn">↩ Restore</button>
-                <button class="delete-btn">🗑 Delete</button>
+                <button class="restore-btn" data-id="{{ file.id }}">↩ Restore</button>
+                <button class="delete-btn" data-id="{{ file.id }}">🗑 Delete</button>
             </div>
 
         </div>
@@ -95,5 +95,43 @@
     </div>
 
 </div>
+
+<script>
+document.querySelectorAll(".restore-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        if (!id) {
+            alert("File ID missing");
+            return;
+        }
+        window.location.href = `/trash/restore/${id}/`;
+    });
+});
+
+document.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        if (!id) {
+            alert("File ID missing");
+            return;
+        }
+        if (confirm("Delete permanently?")) {
+            window.location.href = `/trash/delete/${id}/`;
+        }
+    });
+});
+
+document.querySelector(".restore-all")?.addEventListener("click", () => {
+    window.location.href = "/trash/restore-all/";
+});
+
+document.querySelector(".danger-btn")?.addEventListener("click", () => {
+    if (confirm("Empty trash permanently?")) {
+        window.location.href = "/trash/empty/";
+    }
+});
+</script>
+
+
 
 {% endblock %}

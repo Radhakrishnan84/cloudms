@@ -165,6 +165,69 @@ form input:focus {
 }
 
 /************************************
+   DIVIDER (OR CONTINUE WITH)
+************************************/
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 26px 0;
+    font-size: 14px;
+    color: var(--dark-grey);
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--grey);
+}
+
+.divider span {
+    padding: 0 14px;
+    font-weight: 500;
+}
+
+
+/************************************
+   GOOGLE SIGN-IN BUTTON
+************************************/
+.google-btn {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--grey);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    background: var(--white);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    color: #111;
+}
+
+.google-btn img {
+    width: 22px;
+    height: 22px;
+}
+
+.google-btn:hover {
+    border-color: var(--primary);
+    background: #f5f3ff;
+    transform: translateY(-1px);
+}
+
+.google-btn:active {
+    transform: scale(0.98);
+}
+
+
+/************************************
    RESPONSIVE — Mobile / Tablet
 ************************************/
 @media (max-width: 850px) {

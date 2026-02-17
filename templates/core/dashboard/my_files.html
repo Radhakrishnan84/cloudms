@@ -20,7 +20,7 @@
             <img src="{% static 'images/icons/sb-files.png' %}">
             <span>File Name</span>
         </div>
-        <div class="col modified">Modified </div>
+        <div class="col modified">Modified</div>
         <div class="col modified-by">Modified By</div>
     </div>
 
@@ -31,21 +31,50 @@
 
             <!-- File Icon + Details -->
             <div class="col file-name">
-                   <div class="file-icon">
-                {% if item.file.category == "document" %}
-                <img src="{% static 'images/icons/files-card.png' %}">
-                {% elif item.file.category == "image" %}
-                <img src="{% static 'images/icons/img-card.png' %}">
-                {% elif item.file.category == "video" %}
-                <img src="{% static 'images/icons/video-card.png' %}">
-                {% else %}
-                <img src="{% static 'images/icons/others-card.png' %}">
-                {% endif %}
-            </div>
+                <div class="file-icon">
+                    {% if f.category == "document" %}
+                        <img src="{% static 'images/icons/files-card.png' %}">
+                    {% elif f.category == "image" %}
+                        <img src="{% static 'images/icons/img-card.png' %}">
+                    {% elif f.category == "video" %}
+                        <img src="{% static 'images/icons/video-card.png' %}">
+                    {% else %}
+                        <img src="{% static 'images/icons/others-card.png' %}">
+                    {% endif %}
+                </div>
 
                 <div class="file-meta">
                     <h4>{{ f.name }}</h4>
-                    <p>{{ f.category|title }} • {{ f.size }} MB • {{ f.uploaded_at|timesince }} ago</p>
+                    <p>
+                        {{ f.category|title }} •
+                        {{ f.size }} MB •
+                        {{ f.uploaded_at|timesince }} ago
+                    </p>
+                </div>
+
+                <!-- 🔥 ACTION BUTTONS (ON HOVER) -->
+                <div class="file-actions">
+
+                    <!-- View -->
+                   <a href="{% url 'view_file' f.id %}" target="_blank">
+                        <img src="{% static 'images/icons/view.jpg' %}">
+                    </a>
+
+                    <!-- Download -->
+                    <a href="{% url 'download_file' f.id %}" title="Download">
+                        <img src="{% static 'images/icons/export.png' %}">
+                    </a>
+
+                    <!-- Share -->
+                    <a href="{% url 'share_file' f.id %}" title="Share">
+                        <img src="{% static 'images/icons/sb-share.jpg' %}">
+                    </a>
+
+                    <!-- Trash -->
+                    <a href="{% url 'trash_file' f.id %}" title="Move to Trash">
+                        <img src="{% static 'images/icons/sb-trash.png' %}">
+                    </a>
+
                 </div>
             </div>
 
@@ -56,10 +85,10 @@
 
             <!-- Modified By -->
             <div class="col modified-by">
-                {{ request.user.first_name }}
+                {{ request.user.first_name|default:request.user.username }}
             </div>
-        </div>
 
+        </div>
         {% empty %}
         <div class="empty">No files uploaded yet.</div>
         {% endfor %}
