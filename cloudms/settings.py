@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     # Required
     'django.contrib.sites',
 
+    'rest_framework',
+
     # Allauth
     'allauth',
     'allauth.account',
