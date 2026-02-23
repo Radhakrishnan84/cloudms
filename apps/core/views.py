@@ -49,39 +49,34 @@ def handle_login(request):
     email = request.POST.get("email")
     password = request.POST.get("password")
     remember = request.POST.get("rememberMe")
-    next_url = request.POST.get("next")
 
     if not email or not password:
         messages.error(request, "Email and password are required.")
-        return redirect("login")
+        return redirect("login" if login_type == "user" else "admin_login")
 
     email = email.strip().lower()
-
-    # 🔐 Authenticate
     user = authenticate(request, username=email, password=password)
 
     if user is None:
         messages.error(request, "Invalid email or password.")
-        return redirect("login")
+        return redirect("login" if login_type == "user" else "admin_login")
 
-    # 🚫 Admin access check
+    # Admin validation
     if login_type == "admin" and not user.is_staff:
         messages.error(request, "Admin access denied.")
-        return redirect("login")
+        return redirect("admin_login")
 
-    # ✅ Login
     login(request, user)
 
-    # ⏳ Remember me
+    # Remember me feature
     if remember:
-        request.session.set_expiry(60 * 60 * 24 * 14)  # 14 days
+        request.session.set_expiry(1209600)
     else:
-        request.session.set_expiry(0)  # browser close
+        request.session.set_expiry(0)
 
-    # 🔁 Redirect
-    if next_url:
-        return redirect(next_url)
-
+    # Redirect based on login type
+    if login_type == "admin":
+        return redirect("admin_dashboard")
     return redirect("dashboard")
 
 
