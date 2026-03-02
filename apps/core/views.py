@@ -219,8 +219,22 @@ def calculate_storage(user):
         return None, 0, 0, 0, False
 
     files = UserFile.objects.filter(user=user)
-    storage_used = round(sum(f.size for f in files), 2)
-    storage_total = sub.storage_limit
+    storage_used = 0
+
+    for f in files:
+        size = f.size or 0
+
+        # 🔹 Auto-detect size unit
+        if size > 1024 * 1024 * 10:        # likely BYTES (>10MB in bytes)
+            size = size / (1024 * 1024)   # bytes → MB
+        elif size > 1024:                 # likely KB
+            size = size / 1024            # KB → MB
+        # else: already MB → no change
+
+        storage_used += size
+
+    storage_used = round(storage_used, 2)
+    storage_total = sub.storage_limit  # assumed MB
     storage_percent = int((storage_used / storage_total) * 100) if storage_total else 0
     storage_full = storage_used >= storage_total
 
@@ -236,7 +250,6 @@ def storage_status(request):
         "total": total,
         "percent": percent
     })
-
 
 # ---------------- UPLOAD VIEW ----------------
 @login_required
